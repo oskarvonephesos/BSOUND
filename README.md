@@ -1,6 +1,6 @@
 # BSOUND
 
-This is BSOUND, a little live audio processing tool I have written in C using the portaudio and ncurses libraries. This is my first medium sized project in C, so a lot of the code is horrendous, but I'm slowly improving functionality and making BSOUND slightly better, as I learn more and more about C programming (among other things).
+This is BSOUND, a little live audio processing tool I have written in C using the portaudio and ncurses libraries. This is my first medium sized project in C, so a lot of the code is horrendous, but I'm slowly improving functionality and making BSOUND incrementally better, as I learn more and more about C programming (among other things).
 
 
 # SYSTEM REQUIREMENTS
