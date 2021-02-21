@@ -8,6 +8,7 @@
 #include <curses.h>
 #include <pthread.h>
 #include <string.h>
+#include <stdbool.h>
 #include "data_types.h"
 #include "programm_state.h"
 #include "opcodes.h"
@@ -92,7 +93,7 @@ int main(int argc, const char * argv[]) {
     bsound->programm_loc = argv[0];
     op_stack* head = init_head();
     bsound->head = head;
-    int i, OutOfRangeFlag;
+    int i; bool OutOfRangeFlag;
     int num_devices;
     //port_audio vars
     PaError  err = paNoError;
@@ -159,7 +160,7 @@ int main(int argc, const char * argv[]) {
                 temp1 = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 temp2 = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 pthread_create(&input_handling, NULL, *(input_handler), (void *)bsound);
-                short bypass_active = 0;
+                bool bypass_active = 0;
                 while(1){
                     OutOfRangeFlag = 0;
                     if (bsound->bypass_flag){

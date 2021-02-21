@@ -2,6 +2,7 @@
 #define types_h
 #include <pthread.h>
 #include <curses.h>
+#include <stdbool.h>
 #ifndef MYFLT
 typedef double MYFLT;
 #endif
@@ -41,17 +42,17 @@ typedef struct _BSOUND{
     long out_of_range;
     float hi_damp;
     struct _op_stack* head;
-    short quit_flag;
-    short modify_flag;
-    char* programm_loc;
-    short mono_input;
-    short pause_flag;
-    short bypass_flag;
+    bool quit_flag;
+    bool modify_flag;
+    const char* programm_loc;
+    bool mono_input;
+    bool pause_flag;
+    bool bypass_flag;
     WINDOW* wnd;
     } BSOUND;
 typedef struct _op_stack{
     //operator
-    void (*func)(float* input, float* output, void* data,short* attr, BSOUND* bsound);
+    void (*func)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
     //dealloc function
     void (*dealloc)(BSOUND* bsound, void* data);
     //function data
@@ -66,13 +67,13 @@ typedef struct _op_stack{
     int y;
     int x;
     short* attr;
-    short change_flag;
-    short delete_flag;
+    bool change_flag;
+    bool delete_flag;
     pthread_mutex_t lock;
 }op_stack;
 typedef struct {
     op_stack** head;
-    void (*operator)(float* input, float* output, void* data, short* attr, BSOUND* bsound);
+    void (*operator)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
     void* (*init)(BSOUND* bsound,  USR_IN type);
     void (*dealloc)(BSOUND* bsound, void* data);
     ///this is for delete case
@@ -80,6 +81,6 @@ typedef struct {
     op_stack* cursor;
     BSOUND* bsound;
     USR_IN type;
-    short push_flag;
+    bool push_flag;
 }COMMAND;
 #endif /* types_h */

@@ -171,7 +171,7 @@ void dealloc_delay(BSOUND* bsound, void* data_st){
     free(data->delay_length);
 }
 /*TODO: perform methodical output scaling and add output scaling back in?*/
-void delay(float *input, float * output, void* data,short* attr, BSOUND* bsound){
+void delay(float *input, float * output, void* data,const short* attr, const BSOUND* bsound){
     DELAY_OPS* delay = (DELAY_OPS*) data;
     int i, i2, ii, j, j1, k, num_chans;
     long auxlength;
@@ -451,7 +451,7 @@ void dealloc_partikkel(BSOUND* bsound, void* data_st){
 /// TODO: pan grains?
 
 
-void partikkel(float*input, float*output, void* data_st, short* attr,BSOUND* bsound){
+void partikkel(float*input, float*output, void* data_st, const short* attr, const BSOUND* bsound){
     PARTIKKEL_OPS* data = (PARTIKKEL_OPS*) data_st;
     RNGBUF* in = data->in;
     RNGBUF* out = data->out;
@@ -676,8 +676,8 @@ void partikkel(float*input, float*output, void* data_st, short* attr,BSOUND* bso
         for (i=0; i<frameCount; i++){
             output[ii]=outch[k]*volume; //writes output
             outch[k]=silence;
-            if (output[ii]>= 1.0){output[ii]=0.999f; bsound->out_of_range += 1;}
-            if (output[ii]<= -1.0){output[ii]=-0.999f;bsound->out_of_range += 1;}
+            if (output[ii]>= 1.0){output[ii]=0.999f; /*bsound->out_of_range += 1;*/}
+            if (output[ii]<= -1.0){output[ii]=-0.999f;/*bsound->out_of_range += 1;*/}
             ii+=num_chans;
             k++;
             if (k>=inlength){k=0;}
@@ -775,7 +775,7 @@ void dealloc_reson(BSOUND* bsound, void* data_st){
     dealloc_rngbuf(data->in, bsound);
     dealloc_rngbuf(data->out, bsound);
 }
-void randomize_delay_line(DELAY_LINE* line, BSOUND* bsound, RESON_OPS* data){
+void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* data){
     MYFLT current_delay = fabs( ((MYFLT)line->index) - line->read_index);
     MYFLT max_delay = (MYFLT) line->length;
     MYFLT rand_max = max_delay-current_delay<100?max_delay-current_delay:100;
@@ -785,7 +785,7 @@ void randomize_delay_line(DELAY_LINE* line, BSOUND* bsound, RESON_OPS* data){
         line->read_incr = 1.0 + (linseg_y/linseg_x)/bsound->bufsize;
         line->linseg_rmns = linseg_x;
 }
-void reson(float *input, float* output, void* data_st,short* attr, BSOUND* bsound){
+void reson(float *input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
     RESON_OPS* data = (RESON_OPS*) data_st;
     RNGBUF* in = data->in;
     RNGBUF* out = data->out;
@@ -941,9 +941,7 @@ void dealloc_moddemod(BSOUND* bsound, void* data){
     free(data_st->modulator);
     free(data_st);
 }
-///@todo: maybe hipass on input to remove carrier bleed?
-///@todo: x86:64 has sine instructions, so the whole sine_table seems a bit unnecessary
-void moddemod(float* input, float* output, void* data_st, short* attr,BSOUND* bsound){
+void moddemod(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
     MODDEMOD_OPS* data = (MODDEMOD_OPS *) data_st;
     int j, i, ii, frameCount = bsound->bufsize;
     short num_chans = bsound->num_chans;
@@ -1049,7 +1047,7 @@ void* init_crush(BSOUND* bsound, USR_IN type){
 float signum(float in){
     return (in > 0) ? 1 : ((in < 0) ? -1 : 0);
 }
-void crush(float* input, float* output, void* data_st,short* attr, BSOUND* bsound){
+void crush(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
     CRUSH_OPS* data = (CRUSH_OPS*) data_st;
     //if we're not interpolating quantize
     if (attr[1])
@@ -1233,7 +1231,7 @@ void dealloc_bbd(BSOUND* bsound, void* data){
     free(data_st->prv_y0);
     free(data_st);
 }
-void bbd(float* input, float* output, void* data_st, short* attr, BSOUND* bsound){
+void bbd(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
     BBD_OPS* data = (BBD_OPS*) data_st;
     //if we're not interpolating quantize
     if (attr[3])

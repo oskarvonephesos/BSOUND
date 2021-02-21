@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <curses.h>
 #include <unistd.h>
+#include <stdbool.h>
 #define IN_SIZE 7
 #define NUM_ARGUMENTS 3
 char save_slots[4][32]={"esja", "grettisgata", "harpa", "reykjadalur"};
@@ -158,7 +159,8 @@ void* input_handler(void* in){
     WINDOW* wnd; char line[256]; char single_char; char name[256];
     op_stack* cursor = (op_stack*) malloc(sizeof(op_stack));
     int max_y, max_x, single_int, i, offset = 0;
-    short refresh_flag = 0, repeat_flag = 0, num_attr = 0, load = 0, delete_flag = 0;
+    bool refresh_flag = 0, repeat_flag = 0,  load = 0, delete_flag = 0;
+    short num_attr = 0;
     short input_loc[2], info_loc[2];
     wnd = initscr();
     keypad(wnd, TRUE);
@@ -453,7 +455,7 @@ void* input_handler(void* in){
     endwin();
     return NULL;
 }
-void error_message(char* message, BSOUND* bsound){
+void error_message(const char* message, BSOUND* bsound){
     mvwprintw(bsound->wnd, 0, 0, "%s", message);
     refresh();
 }
@@ -463,7 +465,7 @@ struct user_types{
     int name_length;
     void* (*init_opcode)(BSOUND* bsound, USR_IN type);
     void (*dealloc_opcode)(BSOUND* bsound, void* data);
-    void (*opcode)(float* input, float* output, void* data, short* attr, BSOUND* bsound);
+    void (*opcode)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
 };
 struct user_types all_types[NUM_OPTIONS]={
     {DELAY, "delay", 5, init_delay, dealloc_delay, delay},
@@ -485,7 +487,7 @@ struct user_types all_types[NUM_OPTIONS]={
     {PREFERENCES_MENU, "preferences", 5, NULL, NULL, NULL }
 };
 COMMAND* parse(char* line, int length){
-    USR_IN* parsed_in; int i = 0, success = 0;
+    USR_IN* parsed_in; int i = 0; bool success = 0;
     parsed_in = (USR_IN*)malloc(sizeof(USR_IN)*NUM_ARGUMENTS);
     COMMAND* out_command = (COMMAND*)malloc(sizeof(COMMAND));
     out_command->push_flag = 0;

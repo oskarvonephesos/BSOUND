@@ -6,7 +6,7 @@
 
 //@todo: text files should be in separate "resources folder"
 //@todo: startup message a bit corny?
-LOG_STATE init_log(char* programm_location, BSOUND* bsound){
+LOG_STATE init_log(const char* programm_location, BSOUND* bsound){
     int loc_length = strlen(programm_location) - 6; //the six chars are "BSOUND"
     char* log_loc = (char*)malloc((20+loc_length)*sizeof(char)); //magic numbers FTW
     char* read_loc = (char *)malloc((20+loc_length)*sizeof(char));
@@ -66,7 +66,7 @@ LOG_STATE init_log(char* programm_location, BSOUND* bsound){
     free(log_loc);
     return NORMAL_LOAD;
 }
-void save_to_log(char* programm_loc, BSOUND* bsound){
+void save_to_log(const char* programm_loc, BSOUND* bsound){
     int loc_length = strlen(programm_loc) - 6; //the six chars are "BSOUND"
     char* log_loc = (char*)malloc((20+loc_length)*sizeof(char)); //magic numbers FTW
     FILE* fp;

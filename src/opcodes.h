@@ -113,27 +113,27 @@ typedef struct {
 } BBD_OPS;
 void* init_delay(BSOUND* bsound, USR_IN type);
 void dealloc_delay(BSOUND* bsound, void* data);
-void delay(float *input, float * output, void* data, short* attr, BSOUND* bsound);
+void delay(float *input, float * output, void* data, const short* attr, const BSOUND* bsound);
 
 void* init_partikkel(BSOUND* bsound, USR_IN type);
 void dealloc_partikkel(BSOUND* bsound, void* data);
-void partikkel(float*input, float*output, void* data_st, short* attr, BSOUND* bsound);
+void partikkel(float*input, float*output, void* data_st, const short* attr, const BSOUND* bsound);
 
 void* init_reson(BSOUND* bsound, USR_IN type);
 void dealloc_reson(BSOUND* bsound, void* data);
-void randomize_delay_line(DELAY_LINE* line, BSOUND* bsound, RESON_OPS* data);
-void reson(float *input, float* output, void* data_st, short* attr,BSOUND* bsound);
+void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* data);
+void reson(float *input, float* output, void* data_st, const short* attr, const BSOUND* bsound);
 
 void* init_moddemod(BSOUND* bsound, USR_IN type);
 void dealloc_moddemod(BSOUND* bsound, void* data);
-void moddemod(float* input, float* output, void* data_st,short* attr, BSOUND* bsound);
+void moddemod(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound);
 
 void* init_crush(BSOUND* bsound, USR_IN type);
 void dealloc_crush(BSOUND* bsound, void* data);
-void crush(float* input, float* output, void* data_st,short* attr, BSOUND* bsound);
+void crush(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound);
 
 void* init_bbd(BSOUND* bsound, USR_IN type);
 void dealloc_bbd(BSOUND*, void* data);
-void bbd(float* input, float* output, void* data_st, short* attr, BSOUND* bsound);
+void bbd(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound);
 
 #endif /* opcodes_h */
