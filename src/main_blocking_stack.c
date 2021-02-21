@@ -163,8 +163,6 @@ int main(int argc, const char * argv[]) {
             inparam.hostApiSpecificStreamInfo = NULL;
         outparam.suggestedLatency = outputinfo->defaultLowOutputLatency ;
             outparam.hostApiSpecificStreamInfo = NULL;
-      printf("device: %d", outparam.device );
-      sleep(1);
 
         err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag, NULL, NULL);
         if (err == paNoError){

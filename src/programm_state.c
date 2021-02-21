@@ -13,8 +13,6 @@ BSOUND* init_bsound(){
     bsound->default_buffer_length=SR;
     bsound->num_ops = 0;
     bsound->quit_flag = 0;
-    bsound->input_mode = 0; //mode caesar off
-    bsound->verbose = 0;
     bsound->hi_damp = 2-cos(20.0*MY_2_PI/bsound->sample_rate);
     bsound->hi_damp = (bsound->hi_damp  - sqrt(bsound->hi_damp *bsound->hi_damp - 1.0));
     bsound->modify_flag = 0;

@@ -23,8 +23,6 @@ typedef struct _BSOUND{
     long out_of_range;
     float hi_damp;
     struct _op_stack* head;
-    short input_mode;
-    short verbose;
     short quit_flag;
     short modify_flag;
     char* programm_loc;
