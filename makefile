@@ -15,7 +15,16 @@ LIBS = CoreAudio -framework AudioToolbox -framework AudioUnit\
 bsound: $(SRC) $(PORTSRC)
 	$(CC) $(CFLAGS) -o bsound $(SRC) $(PORTSRC) -lcurses -framework $(LIBS)
 
-##it would be go to force recompilation when header files change, as well
+##this is very ugly. there has to be a more elegant way of solving this
+$(SRC): $(SRCDIR)globaltypes.h
+$(SRCDIR)data_types.o: $(SRCDIR)data_types.c $(SRCDIR)data_types.h
+$(SRCDIR)input_handling.o: $(SRCDIR)input_handling.c $(SRCDIR)input_handling.h
+$(SRCDIR)log_actions.o: $(SRCDIR)log_actions.c $(SRCDIR)log_actions.h
+$(SRCDIR)opcodes.o: $(SRCDIR)opcodes.c $(SRCDIR)opcodes.h
+$(SRCDIR)programm_state.o: $(SRCDIR)programm_state.c $(SRCDIR)programm_state.h
+$(SRCDIR)util_opcodes.o: $(SRCDIR)util_opcodes.c $(SRCDIR)util_opcodes.h
+$(SRCDIR)main_blocking_stack.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
+	$(SRCDIR)opcodes.h $(SRCDIR)programm_state.h $(SRCDIR)util_opcodes.h
 .PHONY: clean
 clean: ;-rm -f $(PDIR)*.o
 	-rm -f $(SRCDIR)*.o

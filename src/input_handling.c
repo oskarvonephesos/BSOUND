@@ -407,7 +407,7 @@ void* input_handler(void* in){
                     noecho();
                     display_preferences_menu(bsound, input_loc);
                     refresh_flag = 1; continue;
-                }
+              } // this won't work on linux, so maybe conditionally compile...
                 else if (usr_in->type == MANUAL){
                     int loc_length = strlen(bsound->programm_loc)-6;
                     char* command = (char*)malloc(sizeof(char)*(loc_length+40));
