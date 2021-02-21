@@ -15,7 +15,7 @@ At it's core, BSOUND is a very simple application. It takes in audio from your d
 
 on MAC OS X
 
-Navigate to the downloaded directory, type 'make && make clean' and if no errors come up, start up BSOUND. This expects some frameworks to be in their system default locations (which maybe isn't a good idea) and so on and so forth, but it's worth a shot (and the makefile is so short, I'm sure you can edit it to your heart's content). If your missing many frameworks, try downloading XCode CommandLineTools (and changing the appropriate paths in the makefile).
+In terminal, navigate to the downloaded directory, type 'make && make clean' and if no errors come up, start up BSOUND. This expects some frameworks to be in their system default locations (which maybe isn't a good idea) and so on and so forth, but it's worth a shot (and the makefile is so short, I'm sure you can edit it to your heart's content). If your missing many frameworks, try downloading XCode CommandLineTools (and changing the appropriate paths in the makefile).
 
 on other UNIX systems:
 
