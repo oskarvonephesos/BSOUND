@@ -1,6 +1,5 @@
-##maybe define some macros to include code optimization by compiler "-02"
 CC = clang
-CFLAGS =-DPA_USE_COREAUDIO=1
+CFLAGS =-DPA_USE_COREAUDIO=1 -o2 #moderate optimization
 SRCDIR =./src/
 PDIR =./portaudio/
 _SRC = data_types.o input_handling.o log_actions.o main_blocking_stack.o opcodes.o \
@@ -15,6 +14,8 @@ LIBS = CoreAudio -framework AudioToolbox -framework AudioUnit\
 	-framework CoreFoundation -framework CoreServices
 bsound: $(SRC) $(PORTSRC)
 	$(CC) $(CFLAGS) -o bsound $(SRC) $(PORTSRC) -lcurses -framework $(LIBS)
-###.PHONY: clean
+	
+##it would be go to force recompilation when header files change, as well
+.PHONY: clean
 clean: ;-rm -f $(PDIR)*.o
 	-rm -f $(SRCDIR)*.o
