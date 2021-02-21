@@ -20,20 +20,12 @@ typedef double MYFLT;
 #ifndef SR
 #define SR 44100.
 #endif
-///this sets the (default) latency
+///this sets the (default) latency on first startup
 #ifndef BUF
 #define BUF 256
-#endif
-///not currently in use
-#ifndef HBUF
-#define HBUF 512
-#endif
-///not currently in use
-#ifndef CHANS
-#define CHANS 2
 #endif
 #include "globaltypes.h"
 struct _BSOUND* init_bsound(void);
 struct _op_stack* init_head (void);
-    
+
 #endif /* programm_state_h */
