@@ -20,4 +20,4 @@ $(PDIR)/%.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 ###.PHONY: clean
 clean: ;-rm -f $(PDIR)/*.o
-	-rm -f $(SRCDIR)/*.o 
+	-rm -f $(SRCDIR)/*.o
