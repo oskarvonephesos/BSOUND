@@ -1,13 +1,8 @@
-//
-//  opcodes.c
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/7/21.
-//
 //TODO: time stretching using a read offset in partikkel
 
 #include "opcodes.h"
 ///this is a mess, but it is explained in input_handling.c
+//maybe belongs in util_opcodes
 MYFLT interval_to_float_conv(short attr){
     MYFLT interval_convert_tab[32];
     int display_index = attr/10, i;

@@ -1,9 +1,3 @@
-//
-//  programm state.h
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/3/21.
-//
 #include <stdlib.h>
 #include <math.h>
 #include "globaltypes.h"

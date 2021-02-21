@@ -1,11 +1,3 @@
-//
-//  types.h
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/17/21.
-//
-
-
 #ifndef types_h
 #define types_h
 #include <pthread.h>

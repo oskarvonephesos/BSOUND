@@ -1,9 +1,3 @@
-//
-//  data_types.h
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/6/21.
-//
 #ifndef data_types_h
 #define data_types_h
 #include "globaltypes.h"

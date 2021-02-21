@@ -1,9 +1,3 @@
-//
-//  programm state.c
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/15/21.
-//
 #include "programm_state.h"
 
 BSOUND* init_bsound(){

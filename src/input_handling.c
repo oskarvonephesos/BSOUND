@@ -1,10 +1,3 @@
-//
-//  input_handling.c
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/4/21.
-//
-
 #include "input_handling.h"
 #include "opcodes.h"
 #include <string.h>

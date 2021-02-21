@@ -1,10 +1,3 @@
-//
-//  log_actions.h
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 2/17/21.
-//
-
 #ifndef log_actions_h
 #define log_actions_h
 #include "globaltypes.h"

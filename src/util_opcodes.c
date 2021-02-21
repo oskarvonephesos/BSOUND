@@ -1,10 +1,3 @@
-//
-//  util_opcodes.c
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/15/21.
-//
-
 #include "util_opcodes.h"
 float rms(float* input, BSOUND* bsound ){
     long bufsize = bsound->bufsize * bsound->num_chans;
@@ -46,6 +39,7 @@ MYFLT dB(MYFLT x){
 MYFLT amp(MYFLT x_dB){
     return pow(10.0, x_dB/20.0);
 }
+//this utility handles mono_input
 void copylefttoright(float* input, BSOUND* bsound, int inchannels){
     int i, frameCount = bsound->bufsize*bsound->num_chans, j, numchans = bsound->num_chans, k;
     for (j=0; j<numchans; j++){
@@ -56,5 +50,5 @@ void copylefttoright(float* input, BSOUND* bsound, int inchannels){
             i += numchans;
         }
     }
-    
+
 }

@@ -1,14 +1,6 @@
-//
-//  util_opcodes.h
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/15/21.
-//
-
 #ifndef util_opcodes_h
 #define util_opcodes_h
 
-#include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include "programm_state.h"

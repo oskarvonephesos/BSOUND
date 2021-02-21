@@ -1,10 +1,3 @@
-//
-//  data_types.c
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/6/21.
-//
-
 #include "data_types.h"
 #include "programm_state.h"
 RNGBUF* alloc_rngbuf( BSOUND* bsound, int length){

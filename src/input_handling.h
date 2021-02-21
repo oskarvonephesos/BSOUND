@@ -1,9 +1,3 @@
-//
-//  input_handling.h
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/4/21.
-//
 #include "globaltypes.h"
 #include <stdlib.h>
 #include <stdio.h>

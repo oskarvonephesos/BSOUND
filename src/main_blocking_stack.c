@@ -1,22 +1,8 @@
-//
-//  main.c
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 1/3/21.
-//
-//*              :::NEW IN VERSION 1.2:::
-//               :::MULTITAP DELAY:::
-//               :::DELETE :::
-//               :::RING MOD AND MODDEMOD:::
 //                  CORRELATE OPCODE
 //               ???WET/DRY OPCODES???
 //TODO: SWITCH A B; first ternary command!!!
 //TODO: insert
-//TODO: make verbosity of stack_ops optional
 //TODO: do more exciting things with panning
-
-///switch should have its own op_stacks and send audio to one or the other (based on random linsegs)
-///difficulties arrise on dealloc
 #include <stdlib.h>
 #include <stdio.h>
 #include <curses.h>

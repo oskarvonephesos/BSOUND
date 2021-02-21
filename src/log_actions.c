@@ -1,15 +1,11 @@
-//
-//  log_actions.c
-//  BSOUND
-//
-//  Created by Richard Schwennicke on 2/17/21.
-//
-
 #include "log_actions.h"
 #include "string.h"
 #include "stdlib.h"
 #include "stdio.h"
 #include "unistd.h"
+
+//@todo: text files should be in separate "resources folder"
+//@todo: startup message a bit corny?
 LOG_STATE init_log(char* programm_location, BSOUND* bsound){
     int loc_length = strlen(programm_location) - 6; //the six chars are "BSOUND"
     char* log_loc = (char*)malloc((20+loc_length)*sizeof(char)); //magic numbers FTW
