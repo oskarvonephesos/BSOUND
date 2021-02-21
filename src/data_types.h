@@ -32,6 +32,3 @@ void dealloc_delay_line(DELAY_LINE* line, BSOUND* bsound);
 #include <stdio.h>
 #endif
 #endif /* data_types_h */
-#ifndef CHANS
-#define CHANS 2
-#endif

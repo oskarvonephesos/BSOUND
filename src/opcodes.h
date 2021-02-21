@@ -14,15 +14,8 @@
 #ifndef opcodes_h
 #define opcodes_h
 #include "globaltypes.h"
-#include "input_handling.h"
 #include "util_opcodes.h"
 #include "data_types.h"
-typedef struct {
-    void* (*init_opcode)(BSOUND* bsound, USR_IN type);
-    void (*dealloc_opcode)(BSOUND* bsound, void* data);
-    void (*opcode)(float* input, float* output, void* data, BSOUND* bsound);
-    char* name;
-}OP_LIST;
 typedef struct {
     RNGBUF* aux;
     int* delay_length; //left and right
