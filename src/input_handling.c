@@ -1,3 +1,22 @@
+/**
+      BSOUND
+      a live audio processing tool
+      designed to interact with acoustic instruments
+    Copyright (C) <2021> <Richard Schwennicke>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    **/
 #include "input_handling.h"
 #include "opcodes.h"
 #include <string.h>
@@ -174,6 +193,14 @@ void* input_handler(void* in){
     cursor = bsound->head;
     memset(name, '\0', 256); memset(line, '\0', 256);
     refresh(); cbreak(); noecho();
+    mvprintw(info_loc[0], max_x/4,  "<BSOUND>  Copyright (C) <2021>  <Richard Schwennicke>");
+    mvprintw(info_loc[0]+1, max_x/4,"This program comes with ABSOLUTELY NO WARRANTY.");
+    mvprintw(info_loc[0]+2, max_x/4,"This is free software, and you are welcome to re-");
+    mvprintw(info_loc[0]+3, max_x/4,"distribute it under certain conditions; for details");
+    mvprintw(info_loc[0]+4, max_x/4,"see the LICENSE.md in the current directory.");
+    mvprintw(info_loc[0] + 6, max_x/4, "press any key to continue");
+    move(info_loc[0]+7, max_x/4); refresh();
+    getch(); erase();
     mvprintw(info_loc[0], max_x/4,     "CHECK YOUR AUDIO LEVELS!");
     mvprintw(info_loc[0] + 2, max_x/4, "WARNING: WHEN USING OPCODES THAT HAVE NO INHERENT DELAY");
     mvprintw(info_loc[0] + 3, max_x/4, "UNCONTROLLED (AND UGLY) FEEDBACK MAY OCCUR!");
