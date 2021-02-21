@@ -11,7 +11,7 @@ This only works on UNIX based systems, because the "GUI" currently uses ncurses.
 
 The idea is very simple: BSOUND takes in audio from your default audio input and sends it through a customizable FX chain and out to your default audio output. There is a little pdf manual that goes into more details (it was written for a non-initiated audience).
 
-# INSTALLING
+# COMPILING
 
 on MAC OS X
 
