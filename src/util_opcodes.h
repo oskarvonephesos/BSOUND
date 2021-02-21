@@ -11,10 +11,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include "data_types.h"
-#include "opcodes.h"
 #include "programm_state.h"
-#include "input_handling.h"
 ///utilities
 void copylefttoright(float* input, BSOUND* bsound, int inchannels);
 MYFLT dB(MYFLT x); ///conversion utilities

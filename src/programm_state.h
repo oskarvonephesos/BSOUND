@@ -14,14 +14,12 @@
 #ifndef MY_2_PI
 #define MY_2_PI (6.28318530718)
 #endif
-///this is the precision used within opcodes
-#ifndef MYFLT
-typedef double MYFLT;
-#endif
+///this is the sample_rate
 #ifndef SR
 #define SR 44100.
 #endif
-///this sets the (default) latency on first startup
+///this sets the (default) latency on first startup;
+///on further start-ups, buffer size is read from log.txt
 #ifndef BUF
 #define BUF 256
 #endif
