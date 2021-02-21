@@ -852,7 +852,7 @@ void display_preferences_menu(BSOUND* bsound, short* print_loc){
                     if (bsound->bufsize < 2048)
                         bsound->bufsize *= 2;
                     else
-                        bsound->bufsize = 256;
+                        bsound->bufsize = 64;
                     sleep(1);
                     bsound->pause_flag = 0;
                     print_preferences_menu(bsound, print_loc);
