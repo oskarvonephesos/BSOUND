@@ -8,11 +8,37 @@
 
 #ifndef types_h
 #define types_h
-#include "programm_state.h"
-#include "input_handling.h"
 #include <pthread.h>
 #include <curses.h>
-
+#ifndef MYFLT
+typedef double MYFLT;
+#endif
+#ifndef _USR_IN
+#define _USR_IN
+typedef enum {
+    DELAY, // delay opcodes
+    PPDEL,
+    TAPE,
+    MULTITAP,
+    CLOUD, // partikkel opcodes
+    SHIMMER,
+    TRANSPOSE,
+    REVERB, // resonator opcodes
+    PEDAL,
+    RINGMOD, //moddemod opcodes
+    MODDEMOD,
+    CRUSH,
+    BBD,
+    DELETE,
+    MANUAL,
+    CLEAR,
+    PREFERENCES_MENU,
+    NUM_OPTIONS,
+    //manipulate stack
+    EMPTY = -1,
+    ERROR = -2
+}USR_IN;
+#endif
 typedef struct _BSOUND{
     int num_ops;
     int sample_rate;

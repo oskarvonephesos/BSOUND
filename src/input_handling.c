@@ -51,7 +51,7 @@ char creation_messages[NUM_OPTIONS][512]={
     "trying out some rad makeup...",                    ///MODDEMOD
     "transatlantic connection incoming...",             ///CRUSH
     "so you've read the manual, i gather",              ///BBD
-    
+
 };
 struct attr_parse attr_types[NUM_OPTIONS]={
     {DELAY, {"time", "feedback", "filter", "spread", "volume", "skip", "wet"},
@@ -295,7 +295,7 @@ void* input_handler(void* in){
                     move(cursor->y, cursor->x +offset);
                     refresh();
                 }
-        
+
             if (single_int == KEY_RIGHT && bsound->num_ops){
                 if (cursor->attr[num_attr]<attr_types[cursor->type].max_val[num_attr])
                     cursor->attr[num_attr]++;
@@ -430,7 +430,7 @@ void* input_handler(void* in){
                 erase(); noecho(); mvprintw(info_loc[0], max_x/3, "%s", creation_messages[usr_in->type]);
                 refresh(); sleep(1);refresh_flag = 1;
             }
-           
+
         }
     erase();
     mvprintw(info_loc[0], info_loc[1], "Do you want to save the current state?");
@@ -460,7 +460,7 @@ void* input_handler(void* in){
     endwin();
     return NULL;
 }
-void error_message(char* message, struct _BSOUND* bsound){
+void error_message(char* message, BSOUND* bsound){
     mvwprintw(bsound->wnd, 0, 0, "%s", message);
     refresh();
 }
@@ -806,7 +806,7 @@ void save_st(BSOUND* bsound, short* print_loc){
             fprintf(ftemp, " %d", bsound->head->attr[i]);
             fprintf(ftemp, "\n");
             delete_item(bsound, bsound->head);
-            
+
             }
     fclose(ftemp);
 cleanup:
@@ -870,10 +870,10 @@ void display_preferences_menu(BSOUND* bsound, short* print_loc){
                     option_selected = 0; move(print_loc[0], print_loc[1] -1); refresh();
                     break;
             }
-            
+
         }
         else if (single_char == 'q')
             break;
     }
-    
+
 }

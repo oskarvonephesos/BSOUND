@@ -6,6 +6,7 @@
 //
 #include <stdlib.h>
 #include <math.h>
+#include "globaltypes.h"
 #ifndef programm_state_h
 #define programm_state_h
 
@@ -24,8 +25,7 @@ typedef double MYFLT;
 #ifndef BUF
 #define BUF 256
 #endif
-#include "globaltypes.h"
-struct _BSOUND* init_bsound(void);
-struct _op_stack* init_head (void);
+BSOUND* init_bsound(void);
+op_stack* init_head (void);
 
 #endif /* programm_state_h */
