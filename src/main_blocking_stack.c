@@ -146,6 +146,8 @@ int main(int argc, const char * argv[]) {
         outputinfo=Pa_GetDeviceInfo(outparam.device);
         if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels )
             bsound->num_chans = outputinfo->maxOutputChannels;
+        else if (inputinfo->maxInputChannels == 0)
+              bsound->num_chans = 2;
         else
             bsound->num_chans = inputinfo->maxInputChannels;
         inparam.channelCount = bsound->num_chans;
