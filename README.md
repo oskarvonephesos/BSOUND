@@ -7,9 +7,9 @@ This is BSOUND, a little live audio processing tool I have written in C using th
 
 This only works on UNIX based systems, because the "GUI" currently uses ncurses. The audio part theoretically works on Windows, as well, but I have only included the portaudio code for mac in this repository.
 
-# OPERATING PRINCIPLE
+# OPERATION
 
-The idea is very simple: BSOUND takes in audio from your default audio input and sends it through a customizable FX chain and out to your default audio output. There is a little pdf manual that goes into more details (it was written for a non-initiated audience).
+At it's core, BSOUND is a very simple application. It takes in audio from your default audio input and sends it through a customizable FX chain and out to your default audio output. Currently, 13 different effects are available with different levels of sophistication and customizability. There is a little pdf manual that goes into more details (it was written for a non-initiated audience).
 
 # COMPILING
 
