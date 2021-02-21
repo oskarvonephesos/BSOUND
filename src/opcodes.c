@@ -190,7 +190,6 @@ void dealloc_delay(BSOUND* bsound, void* data_st){
     dealloc_rngbuf(data->aux, bsound);
     free(data->delay_length);
 }
-/*TODO: perform methodical output scaling and add output scaling back in?*/
 void delay(float *input, float * output, void* data,const short* attr, const BSOUND* bsound){
     DELAY_OPS* delay = (DELAY_OPS*) data;
     int i, i2, ii, j, j1, k, num_chans;
@@ -199,7 +198,7 @@ void delay(float *input, float * output, void* data,const short* attr, const BSO
     DELAY_LINE ** line = delay->lines;
     MYFLT** feedback = delay->current_feedback;
     MYFLT dampfactor = delay->lp_damp, y0;
-    MYFLT volume = pow(10.0, attr[4]/20.0);//20.0* log10((double)attr[4]);
+    MYFLT volume = pow(10.0, attr[4]/20.0);
     MYFLT interpolated, interpolated2, f0, f1, f2, f3, x, read_index, read_index2, incr, incr2;
     MYFLT* spacing = delay->current_spacing, **weighting = delay->current_weighting;
     int x0, x1, x2, x3, line_length, line_length2;
@@ -230,20 +229,12 @@ void delay(float *input, float * output, void* data,const short* attr, const BSO
     }
     for (i=0; i<num_chans; i++){
         MYFLT delay_time;
-        //get delay length
-        //this is still wrong...
        if (line[i]->read_index < line[i]->index)
            delay_time =  line[i]->index - line[i]->read_index ;
         else
             delay_time =  line[i]->length - line[i]->read_index + line[i]->index;
         delay->current_spacing[i] = delay->spacing[i]*delay_time;
         if (((MYFLT)attr[0]/100.0)*line[i]->length != delay_time){
-            //after buf_length  line[i]->index - line[i]->read_index = ((MYFLT)attr[0]/100.0)*line[i]->length;
-            //if delay_time > than delay we want
-            //  read_incr should be smaller than 1
-            //if delay_time < delay we want
-            // read_incr larger than one
-            //read_incr = delay we want - read_in
             delay_time -= ((MYFLT)attr[0]/100.0)*line[i]->length;
             if (delay_time<(-bsound->bufsize/32))
                 delay_time =  - bsound->bufsize / 32;
@@ -316,66 +307,37 @@ void delay(float *input, float * output, void* data,const short* attr, const BSO
         line[j]->index = i;
         line[j]->read_index = read_index;
     }
-    if (delay->num_taps != 1){
-        for (j = 0; j<num_chans; j++){
-            for (i=1; i<delay->num_taps; i++){
-                ii = j;
-                incr = line[j]->read_incr;
-                line_length = line[j]->length;
-                read_index = line[j]->read_index - i*spacing[j] - (MYFLT)frameCount;
-                if (read_index < 0.0){read_index += (MYFLT) line_length;}
-            for (k=0; k<frameCount; k++){
-                read_index += incr;
-                if (((int)read_index)>=line_length ){read_index-=(MYFLT)line_length;}
-                x0 = (int)(read_index - 1.0);
-                x1 = (int) read_index;
-                x2 = (int)(read_index + 1.0);
-                x3 = (int)(read_index + 2.0);
-                if (x0<0){x0+= line_length;}
-                if (x2>=line_length){x2-= line_length;}
-                if (x3>=line_length){x3-= line_length;}
-                x = read_index - ((MYFLT) x1);
-                f0 = line[j]->value[x0];
-                f1 = line[j]->value[x1];
-                f2 = line[j]->value[x2];
-                f3 = line[j]->value[x3];
-                interpolated= f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
-                output[ii] += weighting[j][i]*interpolated;
-                ii += num_chans;
+    for (j = 0; j<num_chans; j++){
+        for (i=1; i<delay->num_taps; i++){
+            ii = j;
+            incr = line[j]->read_incr;
+            line_length = line[j]->length;
+            read_index = line[j]->read_index - i*spacing[j] - (MYFLT)frameCount;
+            if (read_index < 0.0){read_index += (MYFLT) line_length;}
+        for (k=0; k<frameCount; k++){
+            read_index += incr;
+            if (((int)read_index)>=line_length ){read_index-=(MYFLT)line_length;}
+            x0 = (int)(read_index - 1.0);
+            x1 = (int) read_index;
+            x2 = (int)(read_index + 1.0);
+            x3 = (int)(read_index + 2.0);
+            if (x0<0){x0+= line_length;}
+            if (x2>=line_length){x2-= line_length;}
+            if (x3>=line_length){x3-= line_length;}
+            x = read_index - ((MYFLT) x1);
+            f0 = line[j]->value[x0];
+            f1 = line[j]->value[x1];
+            f2 = line[j]->value[x2];
+            f3 = line[j]->value[x3];
+            interpolated= f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
+            output[ii] += weighting[j][i]*interpolated;
+            ii += num_chans;
                 }
             }
-        }
     }
-    else {
-    }
-   /* for (j = 0; j<num_chans; j++){
-        k=aux->index + delay->delay_length[j];
-        kk=aux->index;
-        if(k>=auxlength){k-=auxlength;}
-        ii=j;
-        y0 = delay->prv_y0[j];
-        for (i=0; i<frameCount; i++){
-            aux->value[j][k]=input[ii]+feedback[j][0]*aux->value[0][kk]+feedback[j][1]*aux->value[1][kk];
-            aux->value[j][k] = (y0-aux->value[j][k])*dampfactor + aux->value[j][k];
-                // set y0 to value
-            y0 = aux->value[j][k];
-            output[ii]=scaling*aux->value[j][kk];
-            if (output[ii]>= 1.0){output[ii]=0.999f;}
-            if (output[ii]<= -1.0){output[ii]=-0.999f;}
-            ii+=num_chans;
-            k++;
-            kk++;
-            if (k>=auxlength){k=0;}
-            if (kk>=auxlength){kk=0;}
-        }
-        delay->prv_y0[j]=y0;
-    }
-    aux->index = kk;
-    */
+
 }
 
-//TODO: perform methodical output scaling tests
-//IDEA: (1/frequency)*SR*grain_length*0.5*max_val (0.5 is area under hanning window)
 #define MAX_GRAIN_LENGTH 10000
 void* init_partikkel(BSOUND* bsound, USR_IN type){
     PARTIKKEL_OPS* data = (PARTIKKEL_OPS*) malloc(sizeof(PARTIKKEL_OPS));
@@ -708,14 +670,11 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     out->index = k;
 
 }
-///@todo: output scaling has to depend on feedback?
 void* init_reson(BSOUND* bsound, USR_IN type){
     RESON_OPS* data = NULL;
     data = (RESON_OPS *) calloc(sizeof(RESON_OPS), 1);
-    if (data == NULL){
-        //puts( "ERROR allocating memory for delay_line");
+    if (data == NULL)
         return NULL;
-    }
     int i, padding = 200;
     int linelengths[12];
     double semitone_ratio;
@@ -729,7 +688,6 @@ void* init_reson(BSOUND* bsound, USR_IN type){
             data->output_scaling = 0.44;//0.18f;
             lp_cutoff = 10000.0f; //in hz thanks to john ffitch
             data->random_speed = 900; //k-cycles on average
-            //printf("tuning space \n\n");
             break;
         case PEDAL:
             data->num_lines = 12;
@@ -738,19 +696,14 @@ void* init_reson(BSOUND* bsound, USR_IN type){
             for (i=1; i<12; i++){
                 linelengths[i]= ((double)linelengths[i-1])*semitone_ratio;
             }
-            data->fdbk =0.5f;//= 0.5f;//= 0.9f;
-            ///@todo: figure out the math
-            data->output_scaling  =0.37f;//=0.37f;//= 0.175f;
-            //(0.9-0.5)/(0.174/0.37)
+            data->fdbk =0.5f;
+            data->output_scaling  =0.37f;
             lp_cutoff = 15000.0f;
             data->random_speed = 1200;
-            //printf("calling the piano tuner \n\n");
             break;
         default:
             break;
     }
-    //these are the crucial pieces of information
-
     //housekeeping
     data->in = alloc_rngbuf(bsound, bsound->sample_rate);
     if (data->in == NULL) {
@@ -1031,7 +984,6 @@ void moddemod(float* input, float* output, void* data_st, const short* attr, con
     data->index = current_index;
     data->mod_index = mod_index;
 }
-///@todo: filter frequency should be independent; also interpolate should be optional
 void* init_crush(BSOUND* bsound, USR_IN type){
     CRUSH_OPS* data = (CRUSH_OPS*)malloc(sizeof(CRUSH_OPS));
     int i;
@@ -1063,7 +1015,6 @@ void* init_crush(BSOUND* bsound, USR_IN type){
         free(data_st->prv_y0);
         free(data_st);
 }
-///@todo maybe hipass filter on output?
 float signum(float in){
     return (in > 0) ? 1 : ((in < 0) ? -1 : 0);
 }

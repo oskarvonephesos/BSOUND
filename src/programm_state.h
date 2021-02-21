@@ -34,7 +34,7 @@
 ///this sets the (default) latency on first startup;
 ///on further start-ups, buffer size is read from log.txt
 #ifndef BUF
-#define BUF 256
+#define BUF 128
 #endif
 BSOUND* init_bsound(void);
 op_stack* init_head (void);

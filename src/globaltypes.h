@@ -57,9 +57,8 @@ typedef struct _BSOUND{
     long default_buffer_length;
     short num_chans;
     long bufsize;
-    short num_caesar;
     long out_of_range;
-    float hi_damp;
+    MYFLT hi_damp;
     struct _op_stack* head;
     bool quit_flag;
     bool modify_flag;
@@ -77,26 +76,18 @@ typedef struct _op_stack{
     //function data
     void * func_st;
     struct _op_stack *next_op;
-    //currently not in use
     struct _op_stack *previous_op;
-    //continuous ids
-    int func_id;
     //quick access to original type
     USR_IN type;
     int y;
     int x;
     short* attr;
-    bool change_flag;
-    bool delete_flag;
-    pthread_mutex_t lock;
 }op_stack;
 typedef struct {
     op_stack** head;
     void (*operator)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
     void* (*init)(BSOUND* bsound,  USR_IN type);
     void (*dealloc)(BSOUND* bsound, void* data);
-    ///this is for delete case
-    op_stack* to_delete;
     op_stack* cursor;
     BSOUND* bsound;
     USR_IN type;
