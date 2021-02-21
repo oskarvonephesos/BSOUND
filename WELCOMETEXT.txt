@@ -1,0 +1,23 @@
+
+			    WELCOME to BSOUND 0.2
+
+               
+				NEW OPCODES
+
+
+		MULTITAP DELAY				MODDEMOD
+	brings quintuplet swing 		adds beautiful distortion
+	
+		CRUSH			&&&		RINGMOD
+	brings out some fizzy sample	&&&	just sounds plain weird
+	rate reduction			&&&		 	
+					
+//////////////////////////////////////////////////////////////////////////////
+
+
+		NEW USER INTERFACE		MORE INTUITIVE
+		
+		BETTER SOUND QUALITY		LESS INPUT LAG
+	
+				HAVE FUN!!!
+	
