@@ -51,22 +51,6 @@ void free_op_stack(op_stack* head, BSOUND* bsound){
         }
     }
 }
-//!!!if this has to be update, so does the similar var in input_handling!!!
-short which_attr_is_skip[13]={
-    5, //DELAY
-    5, //PPDEL
-    5, //TAPE
-    5, //MULTITAP
-    5, //CLOUD
-    5, //SHIMMER
-    5, //TRANSPOSE
-    4, //REVERB
-    4, //PEDAL
-    6, //RINGMOD
-    6, //MODDEMOD
-    5, //CRUSH
-    5, //BBD
-};
 void write_audio(float* input, float* output, op_stack* head, BSOUND* bsound, float* temp1, float* temp2){
     int i, skip_total = 0;
     float* temp;
@@ -88,7 +72,7 @@ void write_audio(float* input, float* output, op_stack* head, BSOUND* bsound, fl
         current_op->func(temp1, temp2, current_op->func_st, current_op->attr , bsound);
         i++;
         if (i<bsound->num_ops){
-            attr_num = which_attr_is_skip[current_op->type];
+            attr_num = which_attr_is_skip(current_op->type);
             if (current_op->attr[attr_num]){
                 int j;
                 skip_total += current_op->attr[attr_num];

@@ -39,6 +39,24 @@ void delete_item(BSOUND* bsound, op_stack* cursor);
 op_stack* load_st(BSOUND* bsound, short* print_loc);
 void save_st(BSOUND* bsound, short* print_loc);
 void display_preferences_menu(BSOUND* bsound, short* print_loc);
+
+short which_attr_is_skip(int attr_num){
+    short table[13]={5, //DELAY
+        5, //PPDEL
+        5, //TAPE
+        5, //MULTITAP
+        5, //CLOUD
+        5, //SHIMMER
+        5, //TRANSPOSE
+        4, //REVERB
+        4, //PEDAL
+        6, //RINGMOD
+        6, //MODDEMOD
+        5, //CRUSH
+        5, //BBD
+    };
+    return table[attr_num];
+}
 #define NUM_ATTRS 16
 struct attr_parse {
     USR_IN type;
@@ -546,13 +564,6 @@ int getlength(op_stack* item){
     return all_types[item->type].name_length;
 }
 int display_stack(BSOUND* bsound, int max_x, int max_y){
-    //!!!if this has to be update, so does the similar var in main_blocking_stack!!!
-    //this can't be global, because we use it in main_blocking_stack, as well
-    short which_attr_is_skip[13]={
-        5, /*DELAY*/ 5, /*PPDEL*/    5, /*TAPE*/ 5, /*MULTITAP*/
-        5, /*CLOUD*/  5, /*SHIMMER*/  5, /*TRANSPOSE*/
-        4, /*REVERB*/ 4, /*PEDAL*/6, /*RINGMOD*/ 6, /*MODDEMOD*/ 5, /*CRUSH*/ 5, /*BBD*/
-    };
     op_stack* current = bsound->head; int i = 0; int offset = 0;
     while (i<bsound->num_ops){
         offset+=getlength(current) +4;
@@ -564,7 +575,7 @@ int display_stack(BSOUND* bsound, int max_x, int max_y){
     while (i<bsound->num_ops){
     mvprintw(current->y, current->x + offset, "%s -->", getname(current));
         //this is ugly, but it gets the value of "skip"
-    if (current->attr[which_attr_is_skip[current->type]] && current->next_op)
+    if (current->attr[which_attr_is_skip(current->type)] && current->next_op)
         mvprintw(current->y-1, current->x + offset +1, "->>");
     if (current->next_op)
         current = current->next_op;
