@@ -254,8 +254,8 @@ int main(int argc, const char * argv[]) {
             inparam.hostApiSpecificStreamInfo = NULL;
         outparam.suggestedLatency = outputinfo->defaultLowOutputLatency ;
             outparam.hostApiSpecificStreamInfo = NULL;
-
-        err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag | paMacCoreChangeDeviceParameters, NULL, NULL);
+            //| paMacCoreChangeDeviceParameters
+        err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag | (paMacCoreChangeDeviceParameters &paPlatformSpecificFlags) , NULL, NULL);
         if (err == paNoError){
             err = Pa_StartStream(handle);
             if (err==paNoError){
