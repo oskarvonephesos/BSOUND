@@ -34,6 +34,7 @@
 #include "programm_state.h"
 #include "opcodes.h"
 #include "portaudio.h"
+#include "pa_mac_core.h"
 #include "input_handling.h"
 #include "opcodes.h"
 #include "util_opcodes.h"
@@ -51,7 +52,106 @@ void free_op_stack(op_stack* head, BSOUND* bsound){
         }
     }
 }
-void write_audio(float* input, float* output, op_stack* head, BSOUND* bsound, float* temp1, float* temp2){
+typedef struct {
+    bool bypass_active;
+    bool record_active;
+    int recordbuflength;
+    int recordstart;
+    int recordend;
+    int recordzero;
+    int readhead;
+}Record_info;
+Record_info* init_recordinfo(BSOUND* bsound){
+Record_info* r = (Record_info*) malloc(sizeof(Record_info));
+    r->bypass_active = 0;
+    r->record_active = 0;
+    r->recordbuflength =bsound->sample_rate*12* bsound->num_chans;
+    r->readhead = 0;
+    return r;
+}
+void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bsound, Record_info* r){
+    PaError  err = paNoError;
+    int i, recordhead = r->readhead;
+    if (bsound->bypass_flag){
+        if (!r->bypass_active){
+            err = Pa_ReadStream(handle, input, bsound->bufsize);
+            int j; MYFLT incr = 0.99;
+            for (j=0; j<512; j++){
+            input[j]=input[j]*incr;//samplein[j]*(1.0/(j+1));
+                incr = incr*incr;
+            }
+            for (j=512; j<2048*bsound->num_chans; j++)
+            input[j]=0.0f;
+            r->bypass_active = 1;
+        }
+           else {
+        int j; //this is necessary because of in/out swapping
+        for (j=0; j<2048*bsound->num_chans; j++)
+        input[j]=0.0f;
+            }
+    }
+    else{
+        err = Pa_ReadStream(handle, input, bsound->bufsize);
+        if (r->bypass_active){
+            int j; MYFLT factor = pow(pow(10, 20), 1.0/1024);
+            MYFLT incr = pow(10, -20);
+            for (j=0; j<1024; j++){
+            input[j]=input[j]*incr;
+            incr *= factor;}
+            r->bypass_active = 0;
+        }
+
+    }
+    if (err!= paNoError){
+        if (err==paInputUnderflow){
+            error_message("input underflow", bsound);
+        }
+    }
+
+    if (bsound->mono_input)
+    copylefttoright(input, bsound, 1);
+
+    if (bsound->record_flag){
+        //record_start case
+        if (!r->record_active){
+            r->recordstart = r->readhead;
+            r->record_active = true;
+        }
+        long sampCount = bsound->bufsize * bsound->num_chans;
+        long rbuflength = r->recordbuflength;
+        for (i=0; i<sampCount;){
+        record_buf[recordhead++] = input[i++];
+            if (recordhead > rbuflength)
+                recordhead = 0;
+        }
+    }
+    //record_end case: set appropriate points on tape
+    if (r->record_active && !bsound->record_flag){
+        r->recordend = --recordhead;
+        if (r->recordstart > r->recordend)
+            r->recordzero = 0;
+        else //recordstart != recordend, so this is recordstart<recordend
+            r->recordzero = r->recordstart;
+        //make sure not to call again || playbackflag is set in input_handling
+        r->record_active = 0;
+    }
+    if (bsound->playback_flag){
+        long sampCount = bsound->bufsize * bsound->num_chans;
+        long rend       = r->recordend,
+             rstart     = r->recordstart,
+             rbuflength = r->recordbuflength,
+             rzero      = r->recordzero;
+        for (i=0; i<sampCount;){
+            input[i++]=record_buf[recordhead++];
+            if (recordhead>rend)
+                recordhead = rstart;
+            if (recordhead>rbuflength)
+                recordhead = rzero;
+        }
+    }
+    r->readhead = recordhead;
+}
+void apply_fx(float* input, float* output, op_stack* head, BSOUND* bsound, float* temp1, float* temp2){
     int i, skip_total = 0;
     float* temp;
     op_stack* current_op = head;
@@ -92,7 +192,6 @@ void write_audio(float* input, float* output, op_stack* head, BSOUND* bsound, fl
         output[i]+=temp2[i];
     }
 }
-
 int main(int argc, const char * argv[]) {
     BSOUND * bsound = init_bsound();
     bsound->programm_loc = argv[0];
@@ -106,7 +205,7 @@ int main(int argc, const char * argv[]) {
     PaStreamParameters inparam, outparam;
     PaStream *handle;
     //buffers portaudio writes to
-    float *samplein, *sampleout, *temp1, *temp2;
+    float *samplein, *sampleout, *temp1, *temp2, *recordbuf;
     //input_handling thread
     pthread_t input_handling;
     ///@todo: this has to be changed!!!///welcome text for new version
@@ -146,8 +245,6 @@ int main(int argc, const char * argv[]) {
         outputinfo=Pa_GetDeviceInfo(outparam.device);
         if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels )
             bsound->num_chans = outputinfo->maxOutputChannels;
-        else if (inputinfo->maxInputChannels == 0)
-              bsound->num_chans = 2;
         else
             bsound->num_chans = inputinfo->maxInputChannels;
         inparam.channelCount = bsound->num_chans;
@@ -158,56 +255,21 @@ int main(int argc, const char * argv[]) {
         outparam.suggestedLatency = outputinfo->defaultLowOutputLatency ;
             outparam.hostApiSpecificStreamInfo = NULL;
 
-        err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag, NULL, NULL);
+        err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag | paMacCoreChangeDeviceParameters, NULL, NULL);
         if (err == paNoError){
             err = Pa_StartStream(handle);
             if (err==paNoError){
-              samplein = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+                samplein  = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                temp1 = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                temp2 = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+                temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+                temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+                Record_info* myrecordinfo = init_recordinfo(bsound);
+                recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
                 pthread_create(&input_handling, NULL, *(input_handler), (void *)bsound);
-                bool bypass_active = 0;
                 while(1){
                     OutOfRangeFlag = 0;
-                    if (bsound->bypass_flag){
-                        if (!bypass_active){
-                            err = Pa_ReadStream(handle, samplein, bsound->bufsize);
-                            int j; MYFLT incr = 0.99;
-                            for (j=0; j<512; j++){
-                            samplein[j]=samplein[j]*incr;//samplein[j]*(1.0/(j+1));
-                                incr = incr*incr;
-                            }
-                            for (j=512; j<2048*bsound->num_chans; j++)
-                            samplein[j]=0.0f;
-                            bypass_active = 1;
-                        }
-                           else {
-                        int j; //this is necessary because of in/out swapping
-                        for (j=0; j<2048*bsound->num_chans; j++)
-                        samplein[j]=0.0f;
-                            }
-                    }
-                    else{
-                        err = Pa_ReadStream(handle, samplein, bsound->bufsize);
-                        if (bypass_active){
-                            int j; MYFLT factor = pow(pow(10, 20), 1.0/1024);
-                            MYFLT incr = pow(10, -20);
-                            for (j=0; j<1024; j++){
-                            samplein[j]=samplein[j]*incr;
-                            incr *= factor;}
-                            bypass_active = 0;
-                        }
-
-                    }
-                    if (err!= paNoError){
-                        if (err==paInputUnderflow){
-                            error_message("input underflow", bsound);
-                        }
-                    }
-                    if (bsound->mono_input)
-                    copylefttoright(samplein, bsound, 1);
-                    write_audio(samplein, sampleout, head, bsound, temp1, temp2);
+                    write_input(samplein, handle, recordbuf, bsound, myrecordinfo);
+                    apply_fx(samplein, sampleout, head, bsound, temp1, temp2);
                     for (i=0; i<bsound->bufsize*bsound->num_chans; i++){
                         if (sampleout[i]>1.0f){
                             sampleout[i]=0.0f;

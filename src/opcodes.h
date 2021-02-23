@@ -130,6 +130,24 @@ typedef struct {
     MYFLT* prv_y0_hipass;
     MYFLT damp_factor;
 } BBD_OPS;
+typedef struct {
+    MYFLT* buffer;
+    MYFLT** xmem1;
+    MYFLT** xmem2;
+    MYFLT** ymem1;
+    MYFLT** ymem2;
+    int num_bands;
+    MYFLT** peak; //in hz
+    MYFLT** bandwidth; //in octaves
+    MYFLT** gain; // in db
+    int prv_tilt;
+    MYFLT** b0;
+    MYFLT** b1;
+    MYFLT** b2;
+    MYFLT** a0;
+    MYFLT** a1;
+    MYFLT** a2;
+} RESEQ_OPS;
 void* init_delay(BSOUND* bsound, USR_IN type);
 void dealloc_delay(BSOUND* bsound, void* data);
 void delay(float *input, float * output, void* data, const short* attr, const BSOUND* bsound);
@@ -155,4 +173,7 @@ void* init_bbd(BSOUND* bsound, USR_IN type);
 void dealloc_bbd(BSOUND*, void* data);
 void bbd(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound);
 
+void* init_reseq(BSOUND* bsound, USR_IN type);
+void dealloc_reseq(BSOUND* bsound, void* data);
+void reseq(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound);
 #endif /* opcodes_h */

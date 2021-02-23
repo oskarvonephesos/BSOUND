@@ -41,6 +41,7 @@ typedef enum {
     MODDEMOD,
     CRUSH,
     BBD,
+    RESEQ,
     DELETE,
     MANUAL,
     CLEAR,
@@ -66,7 +67,11 @@ typedef struct _BSOUND{
     bool mono_input;
     bool pause_flag;
     bool bypass_flag;
+    bool record_flag;
+    bool playback_flag;
     WINDOW* wnd;
+    bool filter_bank_active;
+    bool filter_bank_exists;
     } BSOUND;
 typedef struct _op_stack{
     //operator

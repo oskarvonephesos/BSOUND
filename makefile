@@ -1,5 +1,7 @@
 CC = clang
-CFLAGS =-DPA_USE_COREAUDIO=1 -o3 ##-o2 is a more moderate optimization, but this doesn't seem to do very much
+CFLAGS =-DPA_USE_COREAUDIO=1 -o3
+#add this for debugging: -DMAC_CORE_VERBOSE_DEBUG  or -DMAC_CORE_VERY_VERBOS_DEBUG
+# this changes search directory #-isysroot /Library/Developer/CommandLineTools/MacOSX10.15.sdk/##-o2 is a more moderate optimization, but this doesn't seem to do very much
 SRCDIR =./src/
 PDIR =./portaudio/
 _SRC = data_types.o input_handling.o log_actions.o main_blocking_stack.o opcodes.o \
@@ -10,10 +12,10 @@ _PORTSRC = pa_allocation.o pa_converters.o pa_cpuload.o\
 	pa_mac_core_utilities.o pa_mac_core.o pa_process.o pa_ringbuffer.o\
 	pa_stream.o pa_trace.o pa_unix_hostapis.o pa_unix_util.o
 PORTSRC = $(patsubst %, $(PDIR)%, $(_PORTSRC))
-LIBS = CoreAudio -framework AudioToolbox -framework AudioUnit\
+LIBS = -framework CoreAudio -framework AudioToolbox -framework AudioUnit\
 	-framework CoreFoundation -framework CoreServices
 bsound: $(SRC) $(PORTSRC)
-	$(CC) $(CFLAGS) -o bsound $(SRC) $(PORTSRC) -lcurses -framework $(LIBS)
+	$(CC) $(CFLAGS) -o bsound $(SRC) $(PORTSRC) -lcurses  $(LIBS)
 
 ##this is very ugly. there has to be a more elegant way of solving this
 $(SRC): $(SRCDIR)globaltypes.h

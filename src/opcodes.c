@@ -129,13 +129,13 @@ void* init_delay(BSOUND* bsound, USR_IN type){
             break;
         case MULTITAP:
             for (i=0; i<num_chans; i++){
-                delay_struct->delay_length[i]=(bsound->sample_rate)*3/2;
-                delay_struct->feedback[i][i]=0.0f;//left to left and right to right
-                delay_struct->feedback[i][(i+1)%num_chans]=1.0f;//cross-over
+                delay_struct->delay_length[i]              =(bsound->sample_rate)*3/2;
+                delay_struct->feedback[i][i]               =0.0f;//left to left and right to right
+                delay_struct->feedback[i][(i+1)%num_chans] =1.0f;//cross-over
             }
-                delay_struct->lp_freq = 2500.0;
+                delay_struct->lp_freq        = 2500.0;
                 delay_struct->output_scaling = 0.74f;
-                delay_struct->num_taps = 4;
+                delay_struct->num_taps       = 4;
             delay_struct->spacing =(MYFLT*) malloc(sizeof(MYFLT)*num_chans);
             for (i=0; i<num_chans; i++){
                 delay_struct->spacing[i] = 1.0 / (delay_struct->num_taps + 1);
@@ -158,11 +158,11 @@ void* init_delay(BSOUND* bsound, USR_IN type){
     //calculate filter coefficient
     for (i=0; i<delay_struct->num_taps; i++)
         delay_struct->current_weighting[i]=(MYFLT*)malloc(sizeof(MYFLT)*delay_struct->num_taps);
-    lp_damp = 2.0-cos(delay_struct->lp_freq*MY_2_PI/bsound->sample_rate);
-    lp_damp = lp_damp - sqrt(lp_damp*lp_damp - 1.0);
+    lp_damp                   = 2.0-cos(delay_struct->lp_freq*MY_2_PI/bsound->sample_rate);
+    lp_damp                   = lp_damp - sqrt(lp_damp*lp_damp - 1.0);
     delay_struct->prv_lp_freq = delay_struct->lp_freq;
-    delay_struct->lp_damp = lp_damp;
-    delay_struct->prv_y0 = (MYFLT *)malloc(sizeof(MYFLT)*num_chans);
+    delay_struct->lp_damp     = lp_damp;
+    delay_struct->prv_y0      = (MYFLT *)malloc(sizeof(MYFLT)*num_chans);
 for (i=0; i<num_chans; i++){
     buf_length = buf_length > delay_struct->delay_length[i]?buf_length:delay_struct->delay_length[i];
     delay_struct->prv_y0[i]=0.0;
@@ -194,11 +194,11 @@ void delay(float *input, float * output, void* data,const short* attr, const BSO
     DELAY_OPS* delay = (DELAY_OPS*) data;
     int i, i2, ii, j, j1, k, num_chans;
     long auxlength;
-    long frameCount = bsound->bufsize;
+    long frameCount    = bsound->bufsize;
     DELAY_LINE ** line = delay->lines;
-    MYFLT** feedback = delay->current_feedback;
-    MYFLT dampfactor = delay->lp_damp, y0;
-    MYFLT volume = pow(10.0, attr[4]/20.0);
+    MYFLT** feedback   = delay->current_feedback;
+    MYFLT dampfactor   = delay->lp_damp, y0;
+    MYFLT volume       = pow(10.0, attr[4]/20.0);
     MYFLT interpolated, interpolated2, f0, f1, f2, f3, x, read_index, read_index2, incr, incr2;
     MYFLT* spacing = delay->current_spacing, **weighting = delay->current_weighting;
     int x0, x1, x2, x3, line_length, line_length2;
@@ -344,36 +344,36 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
 
     switch (type){
         case CLOUD:
-            data->grain_length = 5000;
-            data->frequency =90; //every x samples one grain gets seeded
-            data->max_val = 0.22;
-            data->max_dist = bsound->sample_rate*4;//max displacement of grain in samples; should be smaller then RNGBUFs
-            data->curr_dist = data->max_dist;
+            data->grain_length        = 5000;
+            data->frequency           =90; //every x samples one grain gets seeded
+            data->max_val             = 0.22;
+            data->max_dist            = bsound->sample_rate*4;//max displacement of grain in samples; should be smaller then RNGBUFs
+            data->curr_dist           = data->max_dist;
             data->transpose_frequency = 30; //every x grains one gets transposed
-            data->pitch_factor=1.0; //transpose interval
-            data->lp_freq = 10000.0;
+            data->pitch_factor        =1.0; //transpose interval
+            data->lp_freq             = 10000.0;
             //printf("spraying mist...\n\n");
             break;
         case SHIMMER:
-            data->grain_length = 6500;
-            data->frequency =90; //every x samples one grain gets seeded
-            data->max_val = 0.20f;
-            data->max_dist = bsound->sample_rate*3;//max displacement of grain in samples; should be smaller then RNGBUFs
-            data->curr_dist = data->max_dist;
+            data->grain_length        = 6500;
+            data->frequency           =90; //every x samples one grain gets seeded
+            data->max_val             = 0.20f;
+            data->max_dist            = bsound->sample_rate*3;//max displacement of grain in samples; should be smaller then RNGBUFs
+            data->curr_dist           = data->max_dist;
             data->transpose_frequency = 5; //every x grains one gets transposed
-            data->pitch_factor=2.0f; //transpose interval
-            data->lp_freq = 1500.0;
+            data->pitch_factor        =2.0f; //transpose interval
+            data->lp_freq             = 1500.0;
             //printf("sprinkling glitter...\n\n");
             break;
         case TRANSPOSE:
-            data->grain_length = 5000;
-            data->frequency = 500; //every x samples one grain gets seeded
-            data->max_val = 0.55;
-            data->max_dist = 5000;//max displacement of grain in samples; should be smaller than RNGBUFs
-            data->curr_dist = 20;
+            data->grain_length        = 5000;
+            data->frequency           = 500; //every x samples one grain gets seeded
+            data->max_val             = 0.55;
+            data->max_dist            = 5000;//max displacement of grain in samples; should be smaller than RNGBUFs
+            data->curr_dist           = 20;
             data->transpose_frequency = 1; //every x grains one gets transposed
-            data->pitch_factor=1.5; //transpose interval
-            data->lp_freq = 2500.0;
+            data->pitch_factor        =1.5; //transpose interval
+            data->lp_freq             = 2500.0;
             //printf("activating robospeak...\n\n");
             break;
         default:
@@ -386,7 +386,7 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     int buf_length = bsound->sample_rate *4;
     data->in=alloc_rngbuf(bsound, buf_length);
     data->out = alloc_rngbuf(bsound, buf_length);
-    data->disttab_index = 0;
+    data->disttab_index  = 0;
     data->disttab_length =4096<<5;
 
     //filter coefficients for LP filter
@@ -394,14 +394,14 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     data->lp_damp = data->lp_damp - sqrt(data->lp_damp*data->lp_damp - 1.0);
     data->transposed = malloc(sizeof(DELAY_LINE*)*bsound->num_chans);
     for (i=0; i<bsound->num_chans; i++){
-        data->transposed[i] = alloc_delay_line(bsound, buf_length);
+        data->transposed[i]             = alloc_delay_line(bsound, buf_length);
         data->transposed[i]->read_index = 1.0f;
-        data->transposed[i]->index = 1;
+        data->transposed[i]->index      = 1;
     }
-    data->prv_y0 = (MYFLT*) calloc(sizeof(MYFLT)*bsound->num_chans, 1);
+    data->prv_y0        = (MYFLT*) calloc(sizeof(MYFLT)*bsound->num_chans, 1);
     data->envtab_length = MAX_GRAIN_LENGTH;
-    data->disttab = (int*) malloc(sizeof(int)*(data->disttab_length));
-    data->envtab = (MYFLT*)malloc(sizeof(MYFLT)*data->envtab_length); //this is currently the max_env_tab_length
+    data->disttab       = (int*) malloc(sizeof(int)*(data->disttab_length));
+    data->envtab        = (MYFLT*)malloc(sizeof(MYFLT)*data->envtab_length); //this is currently the max_env_tab_length
     data->phs = 0;
     data->transpose_phs = 0;
 
@@ -440,9 +440,9 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     DELAY_LINE** transposed=data->transposed;
     MYFLT silence = 0.0f;
     MYFLT volume = pow(10.0, attr[4]/20.0);
-    MYFLT* env = data->envtab;
-    MYFLT** outval=out->value;
-    MYFLT** inval = in->value;
+    MYFLT* env     = data->envtab;
+    MYFLT** outval = out->value;
+    MYFLT** inval  = in->value;
     MYFLT * inch;
     MYFLT *outch;
     MYFLT* transposed_val;
@@ -450,7 +450,6 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     //update from attr
     data->grain_length = (int)(((MYFLT)attr[2])/100.0*MAX_GRAIN_LENGTH);
     data->frequency = bsound->sample_rate/attr[1];
-    ///@todo: maybe redraw disttable?
     data->curr_dist = (int)((MYFLT)data->max_dist * (MYFLT)attr[0] /100.0);
    d_redraw = bsound->num_chans*bsound->bufsize / data->frequency + 6;
     MYFLT rand_a, rand_b; int max_rand = data->curr_dist;
@@ -569,7 +568,6 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                 for (i=1; i<to_write; i++){
                         if ((jj%frequency)==0){
                             if ((jjj%transpose_freq)==0){
-                                //TODO: test this
                                 k = transposed[j]->read_index - grain_length-to_write + (int)((float)i)/pitch_factor;
                                 if (k<0){k+=inlength;}//transposed[j]->index + (int)((float)i)/pitch_factor;
                                 //inlength should be the same as transposed length
@@ -670,6 +668,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     out->index = k;
 
 }
+#define MAX_RANDOMIZE_SPEED (4800.0)
 void* init_reson(BSOUND* bsound, USR_IN type){
     RESON_OPS* data = NULL;
     data = (RESON_OPS *) calloc(sizeof(RESON_OPS), 1);
@@ -699,7 +698,7 @@ void* init_reson(BSOUND* bsound, USR_IN type){
             data->fdbk =0.5f;
             data->output_scaling  =0.37f;
             lp_cutoff = 15000.0f;
-            data->random_speed = 1200;
+            data->random_speed = MAX_RANDOMIZE_SPEED;
             break;
         default:
             break;
@@ -750,13 +749,16 @@ void dealloc_reson(BSOUND* bsound, void* data_st){
 }
 void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* data){
     MYFLT current_delay = fabs( ((MYFLT)line->index) - line->read_index);
-    MYFLT max_delay = (MYFLT) line->length;
-    MYFLT rand_max = max_delay-current_delay<100?max_delay-current_delay:100;
-    MYFLT rand_min = current_delay-100<0?0:-100;
-    int linseg_x = rand_int(data->random_speed * 0.9, data->random_speed * 1.1); //k-cycles
-    MYFLT linseg_y = rand_float(rand_min, rand_max);
-        line->read_incr = 1.0 + (linseg_y/linseg_x)/bsound->bufsize;
-        line->linseg_rmns = linseg_x;
+    MYFLT max_delay     = (MYFLT) line->length;
+    MYFLT rand_max      = max_delay-current_delay<100?max_delay-current_delay :100;
+    MYFLT rand_min      = current_delay-100<0?0                               :-100;
+    int linseg_x        = rand_int(data->random_speed * 0.9, data->random_speed * 1.1); //k-cycles
+    MYFLT linseg_y      = rand_float(rand_min, rand_max);
+    if (data->random_speed == MAX_RANDOMIZE_SPEED)
+        line->read_incr = 1.0;
+    else
+    line->read_incr   = 1.0 + (linseg_y/linseg_x)/bsound->bufsize;
+    line->linseg_rmns = linseg_x;
 }
 void reson(float *input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
     RESON_OPS* data = (RESON_OPS*) data_st;
@@ -782,7 +784,10 @@ void reson(float *input, float* output, void* data_st, const short* attr, const 
     else if (data->num_lines == 8){
        output_scaling = data->output_scaling = 0.7289-0.5778*data->fdbk;
     }
-    data->random_speed = (int)( 900.0* ((100.0-attr[2])/100.0))+15;
+    if (attr[2])
+    data->random_speed = (int)( MAX_RANDOMIZE_SPEED / 100.0* ((100.0-attr[2])/100.0))+15;
+    else
+        data->random_speed = MAX_RANDOMIZE_SPEED;
     if (data->lp_freq != data->prv_lp_freq){
         dampfactor = 2-cos(data->lp_freq *MY_2_PI/bsound->sample_rate);
         dampfactor = dampfactor - sqrt(dampfactor*dampfactor - 1.0);
@@ -1353,4 +1358,177 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
     }
     data->samp_read = index;
 
+}
+void* init_reseq(BSOUND* bsound, USR_IN type){
+    RESEQ_OPS* data = (RESEQ_OPS*)malloc(sizeof(RESEQ_OPS));
+    bsound->filter_bank_exists = 1;
+    data->num_bands = 10;
+    data->prv_tilt = 50;
+    data->buffer = (MYFLT*)malloc(sizeof(MYFLT)*2048*bsound->num_chans);
+    data->peak          = malloc(sizeof(MYFLT*)*bsound->num_chans);
+    data->bandwidth     = malloc(sizeof(MYFLT*)*bsound->num_chans);
+    data->gain          = malloc(sizeof(MYFLT*)*bsound->num_chans);
+    data->b0            = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->b1            = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->b2            = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->a0            = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->a1            = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->a2            = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->xmem1         = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->xmem2         = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->ymem1         = malloc(sizeof(MYFLT)*bsound->num_chans);
+    data->ymem2         = malloc(sizeof(MYFLT)*bsound->num_chans);
+    int i, j;
+    for (i=0; i<bsound->num_chans; i++){
+        data->peak[i]          = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->bandwidth[i]     = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->gain[i]          = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->b0[i]            = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->b1[i]            = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->b2[i]            = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->a0[i]            = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->a1[i]            = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->a2[i]            = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
+        data->xmem1[i]         = (MYFLT*) calloc(sizeof(MYFLT)*data->num_bands, 1);
+        data->xmem2[i]         = (MYFLT*) calloc(sizeof(MYFLT)*data->num_bands, 1);
+        data->ymem1[i]         = (MYFLT*) calloc(sizeof(MYFLT)*data->num_bands, 1);
+        data->ymem2[i]         = (MYFLT*) calloc(sizeof(MYFLT)*data->num_bands, 1);
+    }
+    MYFLT SERGE_reseq[]={29.0, 61.0, 115.0, 218.0, 411.0, 777.0, 1500.0, 2800.0, 5200.0, 11000.0};
+    //maybe this should be two-dimensional and we should be able to interpolate in between?
+    //MYFLT formant_reseq[]={710.0, 1129.0, 2686.0, 3440.0, 4431.0};
+    for (i=0; i<data->num_bands; i++){
+        data->peak[0][i]      = SERGE_reseq[i];
+        data->gain[0][i]      = 48.0;
+        data->bandwidth[0][i] = 1.0;
+    }
+    for (i=1; i<bsound->num_chans; i++){
+        for (j=0; j<data->num_bands; j++){
+            data->peak[i][j]      = 1.1*i*data->peak[0][j];
+            data->bandwidth[i][j] = 1.1*i*data->bandwidth[0][j];
+            data->gain[i][j]      = 1.1*i*data->gain[0][j];
+        }
+    }
+    //calculate coefficients according to bjorn roche
+    for (i=0; i<bsound->num_chans; i++){
+        for (j=0; j<data->num_bands; j++){
+        MYFLT A, omega, c, s, alpha;
+            A     = pow(10.0, data->gain[i][j]/40.0);
+            omega = MY_2_PI*data->peak[i][j]/bsound->sample_rate;
+            c     = cos(omega);
+            s     = sin(omega);
+            alpha = s* sinh(log(2.0)/2.0*data->bandwidth[i][j]*omega/s);
+
+            data->b0[i][j] = 1.0 + alpha*A;
+            data->b1[i][j] = -2*c;
+            data->b2[i][j] = 1.0-alpha*A;
+            data->a0[i][j] = 1.0 + alpha/A;
+            data->a1[i][j] = -2*c;
+            data->a2[i][j] = 1.0-alpha/A;
+            data->b0[i][j]/=data->a0[i][j];
+            data->b1[i][j]/=data->a0[i][j];
+            data->b2[i][j]/=data->a0[i][j];
+            data->a1[i][j]/=data->a0[i][j];
+            data->a2[i][j]/=data->a0[i][j];
+        }
+    }
+    return (void*) data;
+}
+void dealloc_reseq(BSOUND* bsound, void* data){
+    RESEQ_OPS* data_st = (RESEQ_OPS*) data;
+    free(data_st);
+}
+void recalculate_coefficients(RESEQ_OPS* data, const BSOUND* bsound){
+    int i, j;
+    for (i=0; i<bsound->num_chans; i++){
+        for (j=0; j<data->num_bands; j++){
+            MYFLT A, omega, c, s, alpha;
+                A     = pow(10.0, data->gain[i][j]/40.0);
+                omega = MY_2_PI*data->peak[i][j]/bsound->sample_rate;
+                c     = cos(omega);
+                s     = sin(omega);
+                alpha = s* sinh(log(2.0)/2.0*data->bandwidth[i][j]*omega/s);
+
+                data->b0[i][j] = 1.0 + alpha*A;
+                data->b1[i][j] = -2*c;
+                data->b2[i][j] = 1.0-alpha*A;
+                data->a0[i][j] = 1.0 + alpha/A;
+                data->a1[i][j] = -2*c;
+                data->a2[i][j] = 1.0-alpha/A;
+                data->b0[i][j]/=data->a0[i][j];
+                data->b1[i][j]/=data->a0[i][j];
+                data->b2[i][j]/=data->a0[i][j];
+                data->a1[i][j]/=data->a0[i][j];
+                data->a2[i][j]/=data->a0[i][j];
+        }
+    }
+}
+void reseq(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
+    RESEQ_OPS* data = (RESEQ_OPS*)data_st;
+    ///here we would check whether something has changed and update accordingly
+    int i, j, k = 0;
+    if (attr[0]!=data->gain[0][0]){
+        for (i=0; i<bsound->num_chans; i++){
+            for (j=0; j<data->num_bands; j++)
+            data->gain[i][j]=attr[0]*(0.1*i + 1);
+        }
+        recalculate_coefficients(data, bsound);
+    }
+    if (attr[1]!=data->bandwidth[0][0]){
+        for (i=0; i<bsound->num_chans; i++){
+            for (j=0; j<data->num_bands; j++)
+            data->bandwidth[i][j]=(MYFLT)attr[1]/100.0;
+        }
+        recalculate_coefficients(data, bsound);
+    }
+    if (attr[2]!=data->prv_tilt){
+        data->gain[0][0] = 50.0 - attr[2]*0.5;
+        data->gain[0][1] = 50.0 - attr[2]*0.5;
+        data->gain[0][2] = 50.0 - attr[2]*0.5;
+        data->gain[0][3] = 50.0 - attr[2]*0.5;
+        data->gain[0][4] = 50.0 - attr[2]*0.5;
+        data->gain[0][5] = attr[2]*0.5;
+        data->gain[0][6] = attr[2]*0.5;
+        data->gain[0][7] = attr[2]*0.5;
+        data->gain[0][8] = attr[2]*0.5;
+        data->gain[0][9] = attr[2]*0.5;
+        recalculate_coefficients(data, bsound);
+    }
+    short numChans = bsound->num_chans;
+    int numBands = data->num_bands;
+    long numSamps = bsound->num_chans* bsound->bufsize;
+    MYFLT xmem1, xmem2, ymem1, ymem2;
+    MYFLT b0, b1, b2, a1, a2;
+    MYFLT *buffer = data->buffer;
+    for (j=0; j<numChans; j++){
+        for (k=0; k<numBands; k++){
+            xmem1 = data->xmem1[j][k];
+            xmem2 = data->xmem2[j][k];
+            ymem1 = data->ymem1[j][k];
+            ymem2 = data->ymem2[j][k];
+            b0 = data->b0[j][k];
+            b1 = data->b1[j][k];
+            b2 = data->b2[j][k];
+            a1 = data->a1[j][k];
+            a2 = data->a2[j][k];
+            for (i=j; i<numSamps;){
+               buffer[i]            = b0*input[i] +b1*xmem1 + b2*xmem2 - a1*ymem1 - a2*ymem2;
+                xmem2    = xmem1;
+                   xmem1 = input[i];
+                   ymem2 = ymem1;
+                   ymem1 = buffer[i];
+                i+=numChans;
+            }
+            for (i=j; i<numSamps; ){
+                output[i]+=buffer[i];
+                i+=numChans;
+            }
+            data->xmem1[j][k] = xmem1;
+            data->xmem2[j][k] = xmem2;
+            data->ymem1[j][k] = ymem1;
+            data->ymem2[j][k] = ymem2;
+        }
+    }
+    for (i=0; i<numSamps; i++)
+    output[i]*=0.25;
 }

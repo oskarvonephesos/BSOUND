@@ -41,7 +41,7 @@ void save_st(BSOUND* bsound, short* print_loc);
 void display_preferences_menu(BSOUND* bsound, short* print_loc);
 
 short which_attr_is_skip(int attr_num){
-    short table[13]={5, //DELAY
+    short table[14]={5, //DELAY
         5, //PPDEL
         5, //TAPE
         5, //MULTITAP
@@ -54,6 +54,7 @@ short which_attr_is_skip(int attr_num){
         6, //MODDEMOD
         5, //CRUSH
         5, //BBD
+        5, //RESEQ
     };
     return table[attr_num];
 }
@@ -82,7 +83,7 @@ char creation_messages[NUM_OPTIONS][512]={
     "trying out some rad makeup...",                    ///MODDEMOD
     "transatlantic connection incoming...",             ///CRUSH
     "so you've read the manual, i gather",              ///BBD
-
+    "CWEJMAN lässt grüßen"
 };
 struct attr_parse attr_types[NUM_OPTIONS]={
     {DELAY, {"time", "feedback", "filter", "spread", "volume", "skip", "wet"},
@@ -149,6 +150,11 @@ struct attr_parse attr_types[NUM_OPTIONS]={
         {20,  0,   1,   0, -60,     0,   0},
         {300, 100, 100, 2, 12,      100, 100},
         {100, 80,  70,  1, 0,       0, 100},
+        "ssfsdss", 5},
+    {RESEQ, {"gain", "bandwidth", "tilt", "crunch", "volume", "skip", "wet"},
+        {-50,  20,   0,   0, -60,     0,   0},
+        {60, 400, 100, 2, 12,      100, 100},
+        {10, 100,  50,  1, 0,       0, 100},
         "ssfsdss", 5}
 };
 void display_attr(short *attr, int index, USR_IN type, int *display_loc){
@@ -197,7 +203,7 @@ void* input_handler(void* in){
     op_stack* cursor = (op_stack*) malloc(sizeof(op_stack));
     int max_y, max_x, single_int, i, offset = 0;
     bool refresh_flag = 0, repeat_flag = 0,  load = 0, delete_flag = 0;
-    short num_attr = 0;
+    short num_attr = 0; short page;
     short input_loc[2], info_loc[2];
     wnd = initscr();
     keypad(wnd, TRUE);
@@ -250,6 +256,7 @@ void* input_handler(void* in){
         refresh_flag = 1;
     }
     //main loop
+#define NUM_PAGES 2
         while (1){
             if (refresh_flag){
                 erase();
@@ -263,6 +270,10 @@ void* input_handler(void* in){
                 //print info
                 if (bsound->bypass_flag)
                     mvprintw(0, max_x-7, "BYPASS");
+                if (bsound->playback_flag)
+                mvprintw(1, max_x-9, "PLAYBACK");
+                //convert to switch statement?
+                if (page == 0){
                 mvprintw(info_loc[0], info_loc[1], "to add input type ':'");
                 mvprintw(info_loc[0]+1, info_loc[1], "for navigation use A and D");
                 mvprintw(info_loc[0]+2, info_loc[1], "for editing use arrow keys ");
@@ -270,11 +281,32 @@ void* input_handler(void* in){
                 //print stack
                 offset = display_stack(bsound, max_x, max_y);
                 move(cursor->y, cursor->x + offset);
+                }
+                else if (page == 1){
+                    if (!bsound->filter_bank_exists){
+                        page = (page +1 ) % NUM_PAGES;
+                        continue;
+                    }
+                    if (bsound->filter_bank_active)
+                        mvprintw(info_loc[0]-1, info_loc[1], "FILTERBANK ACTIVE  ");
+                    else
+                        mvprintw(info_loc[0]-1, info_loc[1], "FILTERBANK BYPASSED");
+                    mvprintw(info_loc[0], info_loc[1], "to add input type ':'");
+                    mvprintw(info_loc[0]+1, info_loc[1], "for navigation use A and D");
+                    mvprintw(info_loc[0]+2, info_loc[1], "for editing use arrow keys ");
+                    mvprintw(info_loc[0]+4, info_loc[1], "to quit type 'q'");
+                    short x_spacing = max_x / 12;
+                    for (i=0; i<10; i++){
+                        mvprintw(max_y-1, (i+1)*x_spacing , "band %d", i);
+                    }
+                }
+
             }
                 refresh_flag = 0;
                 refresh();
             }
             single_int = getch(); single_char = (char) single_int;
+            //global controls
             if (single_char == '\n' && delete_flag){
                 delete_item(bsound, cursor);
                 cursor = bsound->head;
@@ -291,10 +323,65 @@ void* input_handler(void* in){
                 }
                 refresh_flag = 1;
             }
+            else if (single_char == '\n' && page == 1){
+                bsound->filter_bank_active = ! bsound->filter_bank_active;
+                refresh_flag = 1;
+                continue;
+            }
             if (single_char == 'q'){
                 bsound->quit_flag = 1;
                 break;
             }
+            else if (single_char == ' '){
+                bsound->record_flag = !bsound->record_flag;
+                bsound->bypass_flag = 0;
+                bsound->playback_flag = 0;
+                erase();
+                mvprintw(info_loc[0], info_loc[1], "RECORDING");
+                mvprintw(info_loc[0]+2, info_loc[1], "to exit hit space");
+                move(max_y -1, info_loc[1]);
+                refresh();
+                nodelay(wnd, 1);
+                short counter = 0;
+                single_char = 'b';
+                while (bsound->record_flag && single_char != ' '){
+                    usleep(30000); single_char = getch();
+                    if (counter++ > 9)
+                        counter = 0;
+                    mvprintw(info_loc[0]+1, info_loc[1]-5+ counter/3, "     .     ");
+                    move(max_y -1, info_loc[1]);
+                    refresh();
+                }
+                bsound->record_flag = 0;
+                bsound->playback_flag = 1;
+                nodelay(wnd, 0); refresh_flag = 1;
+                continue;
+            }
+            else if (single_char == 'p' && bsound->num_ops){
+                bsound->playback_flag = !bsound->playback_flag;
+                if (bsound->playback_flag)
+                mvprintw(1, max_x-9, "PLAYBACK");
+                else
+                    mvprintw(1, max_x-9, "        ");
+                move(cursor->y, cursor->x + offset); refresh();
+                continue;
+            }
+            if (single_char == '\t'){
+                page = (page + 1)%2;
+                refresh_flag = 1;
+                continue;
+            }
+            if ((single_char == 'b' || single_char == 'B') && bsound->num_ops){
+                bsound->bypass_flag = !bsound->bypass_flag;
+                if (bsound->bypass_flag)
+                mvprintw(0, max_x-9, "BYPASS");
+                else
+                    mvprintw(0, max_x-9, "      ");
+                move(cursor->y, cursor->x + offset); refresh();
+                continue;
+            }
+            //per page navigation
+            if (page == 0){
             if (single_char == 'a'  && bsound->num_ops){
                 if (repeat_flag)
                     refresh_flag = 1;
@@ -316,7 +403,6 @@ void* input_handler(void* in){
                     if (cursor->attr[num_attr]>attr_types[cursor->type].max_val[num_attr])
                         cursor->attr[num_attr] = attr_types[cursor->type].max_val[num_attr];
                     mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
-                    //mvprintw(cursor->y-3, cursor->x+offset, "  %d  ", cursor->attr[num_attr]);
                     int display_loc[2] = {cursor->y-3, cursor->x+offset};
                     display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                     repeat_flag = 1;
@@ -328,7 +414,6 @@ void* input_handler(void* in){
                     if (cursor->attr[num_attr]<attr_types[cursor->type].min_val[num_attr])
                         cursor->attr[num_attr] = attr_types[cursor->type].min_val[num_attr];
                     mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
-                    //mvprintw(cursor->y-3, cursor->x+offset, "  %d  ", cursor->attr[num_attr]);
                     int display_loc[2] = {cursor->y-3, cursor->x+offset};
                     display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                     repeat_flag = 1;
@@ -340,7 +425,6 @@ void* input_handler(void* in){
                 if (cursor->attr[num_attr]<attr_types[cursor->type].max_val[num_attr])
                     cursor->attr[num_attr]++;
                 mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
-                //mvprintw(cursor->y-3, cursor->x+offset, "  %d  ", cursor->attr[num_attr]);
                 int display_loc[2] = {cursor->y-3, cursor->x+offset};
                 display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                 repeat_flag = 1;
@@ -351,7 +435,6 @@ void* input_handler(void* in){
                 if (cursor->attr[num_attr]>attr_types[cursor->type].min_val[num_attr])
                     cursor->attr[num_attr]--;
                 mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
-                //mvprintw(cursor->y-3, cursor->x+offset, "  %d  ", cursor->attr[num_attr]);
                 int display_loc[2] = {cursor->y-3, cursor->x+offset};
                 display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                 repeat_flag = 1;
@@ -378,13 +461,10 @@ void* input_handler(void* in){
                 move(cursor->y, cursor->x +offset); repeat_flag = 1;
                 refresh();
             }
-            if ((single_char == 'b' || single_char == 'B') && bsound->num_ops){
-                bsound->bypass_flag = !bsound->bypass_flag;
-                if (bsound->bypass_flag)
-                mvprintw(0, max_x-7, "BYPASS");
-                else
-                    mvprintw(0, max_x-7, "      ");
-                move(cursor->y, cursor->x + offset); refresh();
+            }
+            else if (page == 1){
+                if (single_char == 'a')
+                    ; // do something
             }
             if (single_char == ':'){
                 echo();
@@ -402,6 +482,13 @@ void* input_handler(void* in){
                 refresh();
                 wgetnstr(wnd, line, 255);
                 COMMAND *usr_in = parse(line, 255);
+                if (usr_in->type == RESEQ && bsound->filter_bank_exists){
+                    erase(); noecho();
+                    mvprintw(info_loc[0], info_loc[1], "ERROR! FILTERBANK already exists");
+                    move(info_loc[0]+1, info_loc[1]);
+                    refresh(); sleep(1); refresh_flag = 1;
+                    continue;
+                }
                 if (usr_in->type == DELETE){
                     //erase, then draw chain
                     erase(); display_stack(bsound, max_x, max_y);
@@ -468,7 +555,8 @@ void* input_handler(void* in){
                     }
                 }
                 erase(); noecho(); mvprintw(info_loc[0], max_x/3, "%s", creation_messages[usr_in->type]);
-                refresh(); sleep(1);refresh_flag = 1;
+                refresh(); sleep(1);
+                refresh_flag = 1;
             }
 
         }
@@ -526,6 +614,7 @@ struct user_types all_types[NUM_OPTIONS]={
     {MODDEMOD, "moddemod", 8, init_moddemod, dealloc_moddemod, moddemod},
     {CRUSH, "crush", 5, init_crush, dealloc_crush, crush},
     {BBD, "bbd", 3, init_bbd, dealloc_bbd, bbd},
+    {RESEQ, "reseq", 5, init_reseq, dealloc_reseq, reseq},
     {DELETE, "delete", 6, NULL, NULL, NULL},
     {CLEAR, "clear", 5, NULL, NULL, NULL},
     {MANUAL, "manual", 3, NULL, NULL, NULL},
@@ -722,11 +811,11 @@ op_stack* load_st(BSOUND* bsound, short* print_loc){
         while(fgets(line, 128, ftemp)){
             //TODO: complete
             sscanf(line, "%d", &type);
-            command->operator = all_types[type].opcode;
-            command->dealloc = all_types[type].dealloc_opcode;
-            command->init = all_types[type].init_opcode;
-            command->type = all_types[type].type;
-            command->bsound = bsound;
+            command->operator  = all_types[type].opcode;
+            command->dealloc   = all_types[type].dealloc_opcode;
+            command->init      = all_types[type].init_opcode;
+            command->type      = all_types[type].type;
+            command->bsound    = bsound;
             command->push_flag = 0;
             i = 0;
             cursor = bsound->head;
