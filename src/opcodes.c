@@ -21,6 +21,8 @@
 //TODO: time stretching using a read offset in partikkel
 
 #include "opcodes.h"
+#include "input_handling.h"
+#include <stdio.h>
 ///this is a mess, but it is explained in input_handling.c
 //maybe belongs in util_opcodes
 MYFLT interval_to_float_conv(short attr){
@@ -431,9 +433,14 @@ void dealloc_partikkel(BSOUND* bsound, void* data_st){
 }
 
 /// TODO: pan grains?
-
-
+short is_denormal(MYFLT in){
+    if (fpclassify(in) == FP_SUBNORMAL)
+        return 1;
+    else
+        return 0;
+}
 void partikkel(float*input, float*output, void* data_st, const short* attr, const BSOUND* bsound){
+    //int counter = 0;
     PARTIKKEL_OPS* data = (PARTIKKEL_OPS*) data_st;
     RNGBUF* in = data->in;
     RNGBUF* out = data->out;
@@ -576,7 +583,6 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                                 if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                                 if (kk>=inlength){kk-=inlength;}
                                 for (ii=0; ii<grain_length; ii++){
-
                                     outch[kk++]+=transposed_val[k++]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
                                     if (kk>=inlength){kk=0;}
                                     if (k>=inlength){k=0;}
@@ -593,8 +599,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                             if (kk>=inlength){kk-=inlength;}
 
                             for (ii=0; ii<grain_length; ii++){
-
-                                outch[kk++]+=inch[k++]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
+                                outch[kk++]+= inch[k++]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
                                 if (k>=inlength){k=0;}
                                 if (kk>=inlength){kk=0;}
                             }
@@ -666,6 +671,10 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     }
 
     out->index = k;
+  /*  char outstring[20];
+    sprintf(outstring, "%d", counter);
+    if (data->phs % 30000 > 1000 && data->phs % 30000 < 2000)
+    error_message(outstring, bsound);*/
 
 }
 #define MAX_RANDOMIZE_SPEED (4800.0)

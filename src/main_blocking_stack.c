@@ -55,6 +55,7 @@ void free_op_stack(op_stack* head, BSOUND* bsound){
 typedef struct {
     bool bypass_active;
     bool record_active;
+    bool crosses_zero;
     int recordbuflength;
     int recordstart;
     int recordend;
@@ -65,16 +66,56 @@ Record_info* init_recordinfo(BSOUND* bsound){
 Record_info* r = (Record_info*) malloc(sizeof(Record_info));
     r->bypass_active = 0;
     r->record_active = 0;
-    r->recordbuflength =bsound->sample_rate*12* bsound->num_chans;
+    r->recordbuflength =300000;//bsound->sample_rate*4* bsound->num_chans;
     r->readhead = 0;
+    r->crosses_zero = false;
     return r;
 }
 void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bsound, Record_info* r){
     PaError  err = paNoError;
     int i, recordhead = r->readhead;
+    //audio in
+    err = Pa_ReadStream(handle, input, bsound->bufsize);
+    if (err!= paNoError){
+        if (err==paInputUnderflow){
+            error_message("input underflow", bsound);
+        }
+    }
+    if (bsound->mono_input)
+    copylefttoright(input, bsound, 1);
+    if (bsound->record_flag){
+        //record_start case
+        if (!r->record_active){
+            r->recordstart = r->readhead;
+            r->record_active = true;
+            r->crosses_zero = false;
+        }
+        long sampCount = bsound->bufsize * bsound->num_chans;
+        long rbuflength = r->recordbuflength;
+        for (i=0; i<sampCount;){
+        record_buf[recordhead++] = input[i++];
+            if (recordhead >= rbuflength){
+                recordhead = 0;
+                r->crosses_zero = true;
+            }
+        }
+    }
+    else {
+    //record_end case: set appropriate points on tape
+    if (r->record_active){
+            if (--recordhead<0)
+                recordhead += r->recordbuflength;
+            r->recordend = recordhead;
+            if (r->recordstart > r->recordend)
+                r->recordzero = 0;
+            else //recordstart != recordend, so this is recordstart<recordend
+                r->recordzero = r->recordstart;
+            //make sure not to call again || playbackflag is set in input_handling
+            r->record_active = 0;
+        recordhead = r->recordstart;
+        }
     if (bsound->bypass_flag){
         if (!r->bypass_active){
-            err = Pa_ReadStream(handle, input, bsound->bufsize);
             int j; MYFLT incr = 0.99;
             for (j=0; j<512; j++){
             input[j]=input[j]*incr;//samplein[j]*(1.0/(j+1));
@@ -91,7 +132,6 @@ void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bso
             }
     }
     else{
-        err = Pa_ReadStream(handle, input, bsound->bufsize);
         if (r->bypass_active){
             int j; MYFLT factor = pow(pow(10, 20), 1.0/1024);
             MYFLT incr = pow(10, -20);
@@ -102,39 +142,7 @@ void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bso
         }
 
     }
-    if (err!= paNoError){
-        if (err==paInputUnderflow){
-            error_message("input underflow", bsound);
-        }
-    }
 
-    if (bsound->mono_input)
-    copylefttoright(input, bsound, 1);
-
-    if (bsound->record_flag){
-        //record_start case
-        if (!r->record_active){
-            r->recordstart = r->readhead;
-            r->record_active = true;
-        }
-        long sampCount = bsound->bufsize * bsound->num_chans;
-        long rbuflength = r->recordbuflength;
-        for (i=0; i<sampCount;){
-        record_buf[recordhead++] = input[i++];
-            if (recordhead > rbuflength)
-                recordhead = 0;
-        }
-    }
-    //record_end case: set appropriate points on tape
-    if (r->record_active && !bsound->record_flag){
-        r->recordend = --recordhead;
-        if (r->recordstart > r->recordend)
-            r->recordzero = 0;
-        else //recordstart != recordend, so this is recordstart<recordend
-            r->recordzero = r->recordstart;
-        //make sure not to call again || playbackflag is set in input_handling
-        r->record_active = 0;
-    }
     if (bsound->playback_flag){
         long sampCount = bsound->bufsize * bsound->num_chans;
         long rend       = r->recordend,
@@ -142,12 +150,19 @@ void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bso
              rbuflength = r->recordbuflength,
              rzero      = r->recordzero;
         for (i=0; i<sampCount;){
-            input[i++]=record_buf[recordhead++];
-            if (recordhead>rend)
+            input[i++]+=record_buf[recordhead++];
+        if (recordhead>=rbuflength)
+            recordhead = rzero;
+        if (r->crosses_zero){
+            if (recordhead>=rend && recordhead < rstart)
                 recordhead = rstart;
-            if (recordhead>rbuflength)
-                recordhead = rzero;
+            }
+            else {
+            if (recordhead>=rend )
+                recordhead = rstart;
+            }
         }
+    }
     }
     r->readhead = recordhead;
 }
@@ -206,6 +221,9 @@ int main(int argc, const char * argv[]) {
     PaStream *handle;
     //buffers portaudio writes to
     float *samplein, *sampleout, *temp1, *temp2, *recordbuf;
+    //recordbuflength wraps index around at end of buffer
+    //recordbegin points to reset point when we pass recordend
+    //recordzero points to reset point when we pass buffer end
     //input_handling thread
     pthread_t input_handling;
     ///@todo: this has to be changed!!!///welcome text for new version
@@ -254,8 +272,8 @@ int main(int argc, const char * argv[]) {
             inparam.hostApiSpecificStreamInfo = NULL;
         outparam.suggestedLatency = outputinfo->defaultLowOutputLatency ;
             outparam.hostApiSpecificStreamInfo = NULL;
-            //| paMacCoreChangeDeviceParameters
-        err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag | (paMacCoreChangeDeviceParameters &paPlatformSpecificFlags) , NULL, NULL);
+
+        err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag | (paMacCoreChangeDeviceParameters &paPlatformSpecificFlags), NULL, NULL);
         if (err == paNoError){
             err = Pa_StartStream(handle);
             if (err==paNoError){
@@ -275,7 +293,7 @@ int main(int argc, const char * argv[]) {
                             sampleout[i]=0.0f;
                             OutOfRangeFlag = 1;
                         }
-                        if (sampleout[i]<-1.0f){
+                        if (sampleout[i]< -1.0f){
                             sampleout[i]=0.0f;
                             OutOfRangeFlag = 1;
                         }

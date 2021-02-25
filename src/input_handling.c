@@ -334,7 +334,6 @@ void* input_handler(void* in){
             }
             else if (single_char == ' '){
                 bsound->record_flag = !bsound->record_flag;
-                bsound->bypass_flag = 0;
                 bsound->playback_flag = 0;
                 erase();
                 mvprintw(info_loc[0], info_loc[1], "RECORDING");

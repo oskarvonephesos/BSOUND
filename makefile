@@ -1,11 +1,11 @@
 CC = clang
-CFLAGS =-DPA_USE_COREAUDIO=1 -o3
-#add this for debugging: -DMAC_CORE_VERBOSE_DEBUG  or -DMAC_CORE_VERY_VERBOS_DEBUG
+CFLAGS =-DPA_USE_COREAUDIO=1 -o3 -ffast-math 
+#add this for debugging: -DMAC_CORE_VERBOSE_DEBUG  or -DMAC_CORE_VERY_VERBOSE_DEBUG
 # this changes search directory #-isysroot /Library/Developer/CommandLineTools/MacOSX10.15.sdk/##-o2 is a more moderate optimization, but this doesn't seem to do very much
 SRCDIR =./src/
 PDIR =./portaudio/
-_SRC = data_types.o input_handling.o log_actions.o main_blocking_stack.o opcodes.o \
-	programm_state.o util_opcodes.o
+_SRC = data_types.o input_handling.o log_actions.o opcodes.o \
+	programm_state.o util_opcodes.o main_blocking_stack.o
 SRC = $(patsubst %, $(SRCDIR)%, $(_SRC) )
 _PORTSRC = pa_allocation.o pa_converters.o pa_cpuload.o\
 	pa_debugprint.o pa_dither.o pa_front.o pa_mac_core_blocking.o\
