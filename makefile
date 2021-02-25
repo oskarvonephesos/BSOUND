@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS =-DPA_USE_COREAUDIO=1 -o3 -ffast-math 
+CFLAGS =-DPA_USE_COREAUDIO=1 -o3 -ffast-math
 #add this for debugging: -DMAC_CORE_VERBOSE_DEBUG  or -DMAC_CORE_VERY_VERBOSE_DEBUG
 # this changes search directory #-isysroot /Library/Developer/CommandLineTools/MacOSX10.15.sdk/##-o2 is a more moderate optimization, but this doesn't seem to do very much
 SRCDIR =./src/
