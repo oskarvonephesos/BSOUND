@@ -261,7 +261,6 @@ int main(int argc, const char * argv[]) {
         outparam.sampleFormat = paFloat32;
 
         outputinfo=Pa_GetDeviceInfo(outparam.device);
-        inputinfo->maxInputChannels = 1;
         if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels )
             bsound->num_chans = outputinfo->maxOutputChannels;
         else
