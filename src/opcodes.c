@@ -485,6 +485,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     //interpolation
     MYFLT f0, f1, f2, f3;
     MYFLT x, index, max_val = data->max_val;
+    MYFLT feedback = (MYFLT)attr[7]/100.0;
     int x0, x1, x2, x3;
     //check if the grain_length has changed since last k-cycle
     if (data->envtab_length != grain_length){
@@ -496,19 +497,24 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     // read input into input_buffer
     for (j = 0; j<num_chans; j++){
         k=in->index+in->available;
+        kk=out->index - bsound->num_chans*bsound->bufsize;
+        if (kk<0){kk+=inlength;}
         inch = inval[j];
         outch =outval[j];
         hi_damp = bsound->hi_damp;
         y0 = data->prv_y0[j];
        if(k>=inlength){k-=inlength;}
         ii=j;
+        kk+=j;
         for (i=0; i<frameCount; i++){
-            samp = input[ii];
+            MYFLT my_in = input[ii] +atan(feedback*outch[kk++])/1.4; //+0.9*erf(feedback*outch[kk++]);
+            samp = my_in;
             samp = (y0+samp)*hi_damp;
-            y0 = samp - input[ii];
+            y0 = samp - my_in;
             inch[k]=samp;// reads input
             ii+=num_chans;
             k++;
+            if (kk>=inlength){kk=0;}
             if (k>=inlength){k=0;}
         }
         data->prv_y0[j]=y0;
@@ -621,15 +627,18 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
 
             for (i=0; i<to_write; i++){
                 if ((jj%frequency)==0){
+                    if (attr[6]==0)
                     k=in->index + i; //read index
+                    else
+                        k=in->index+i+grain_length;
                     if (k>= inlength ){k-=inlength;}
 
-                   // k1 = (MYFLT)k;
                     kk=(data->disttab[data->disttab_index++]%data->curr_dist)+data->out->index;//read from dist-tab
 
                     if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                     if (kk>=inlength){kk-=inlength;}
 
+                    if (attr[6]==0){
                     for (ii=0; ii<grain_length; ii++){
 
                         outch[kk++]+=inch[k++]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
@@ -637,6 +646,17 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                         if (k>=inlength){k=0;}
                         if (kk>=inlength){kk=0;}
                     }
+                    }
+                else{
+                    for (ii=0; ii<grain_length; ii++){
+
+                        outch[kk++]+=inch[k--]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
+
+                        if (k<0){k+=inlength;}
+                        if (kk>=inlength){kk=0;}
+                    }
+                    }
+
                 }
                 jj++;
             }
@@ -655,17 +675,19 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
 
     for (j = 0; j<num_chans; j++){
         k=out->index;
-        kk = out->available;
+        kk = out->index - bsound->bufsize*bsound->num_chans;
+        if (kk<0){kk+=inlength;}
         ii=j;
         outch= outval[j];
         for (i=0; i<frameCount; i++){
             output[ii]=outch[k]*volume; //writes output
-            outch[k]=silence;
+            outch[kk++]=silence;
             if (output[ii]>= 1.0){output[ii]=0.999f; /*bsound->out_of_range += 1;*/}
             if (output[ii]<= -1.0){output[ii]=-0.999f;/*bsound->out_of_range += 1;*/}
             ii+=num_chans;
             k++;
             if (k>=inlength){k=0;}
+            if (kk>=inlength){kk=0;}
         }
 
     }
