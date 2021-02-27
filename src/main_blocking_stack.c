@@ -261,12 +261,17 @@ int main(int argc, const char * argv[]) {
         outparam.sampleFormat = paFloat32;
 
         outputinfo=Pa_GetDeviceInfo(outparam.device);
+        inputinfo->maxInputChannels = 1;
         if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels )
             bsound->num_chans = outputinfo->maxOutputChannels;
         else
             bsound->num_chans = inputinfo->maxInputChannels;
-        inparam.channelCount = bsound->num_chans;
-        outparam.channelCount = bsound->num_chans;
+        if (bsound->num_chans > inputinfo->maxInputChannels){
+            bsound->mono_input = true;
+            bsound->in_out_chanmatch= false;
+        }
+        inparam.channelCount = inputinfo->maxInputChannels;
+        outparam.channelCount = outputinfo->maxOutputChannels;
         inparam.suggestedLatency = inputinfo->defaultLowInputLatency ;
 
             inparam.hostApiSpecificStreamInfo = NULL;
@@ -277,7 +282,7 @@ int main(int argc, const char * argv[]) {
         if (err == paNoError){
             err = Pa_StartStream(handle);
             if (err==paNoError){
-                samplein  = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+                samplein  = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+1), 1);
                 sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);

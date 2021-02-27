@@ -61,6 +61,7 @@ MYFLT amp(MYFLT x_dB){
 //this utility handles mono_input
 void copylefttoright(float* input, BSOUND* bsound, int inchannels){
     int i, frameCount = bsound->bufsize*bsound->num_chans, j, numchans = bsound->num_chans, k;
+    if (bsound->in_out_chanmatch){
     for (j=0; j<numchans; j++){
         k = (j + inchannels)%numchans;
         for (i=j; i<frameCount;){
@@ -69,5 +70,22 @@ void copylefttoright(float* input, BSOUND* bsound, int inchannels){
             i += numchans;
         }
     }
-
+    }
+    else {
+        frameCount = bsound->bufsize;
+        k=frameCount*numchans;
+        for (i=0; i<frameCount; i++){
+            input[k++]=input[i];
+        }
+        for (j=0; j<numchans; j++){
+            k = j;
+            frameCount = bsound->num_chans*bsound->bufsize;
+            i = frameCount;
+            for (k=j; k<frameCount; ){
+                input[k]=input[i];
+                k +=numchans;
+                i++;
+            }
+        }
+    }
 }
