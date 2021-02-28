@@ -458,7 +458,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     data->grain_length = (int)(((MYFLT)attr[2])/100.0*MAX_GRAIN_LENGTH);
     data->frequency = bsound->sample_rate/attr[1];
     data->curr_dist = (int)((MYFLT)data->max_dist * (MYFLT)attr[0] /100.0);
-   d_redraw = bsound->num_chans*bsound->bufsize / data->frequency + 6;
+    d_redraw = bsound->num_chans*bsound->bufsize / data->frequency + 6;
     MYFLT rand_a, rand_b; int max_rand = data->curr_dist;
     //srand(time(NULL));
     for (i = 0; i<d_redraw; ){

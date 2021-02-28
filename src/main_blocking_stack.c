@@ -90,8 +90,8 @@ void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bso
             r->record_active = true;
             r->crosses_zero = false;
         }
-        long sampCount = bsound->bufsize * bsound->num_chans;
-        long rbuflength = r->recordbuflength;
+        int sampCount = bsound->bufsize * bsound->num_chans;
+        int rbuflength = r->recordbuflength;
         for (i=0; i<sampCount;){
         record_buf[recordhead++] = input[i++];
             if (recordhead >= rbuflength){
@@ -144,8 +144,8 @@ void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bso
     }
 
     if (bsound->playback_flag){
-        long sampCount = bsound->bufsize * bsound->num_chans;
-        long rend       = r->recordend,
+        int sampCount = bsound->bufsize * bsound->num_chans;
+        int rend       = r->recordend,
              rstart     = r->recordstart,
              rbuflength = r->recordbuflength,
              rzero      = r->recordzero;
@@ -216,7 +216,7 @@ int main(int argc, const char * argv[]) {
     int num_devices;
     //port_audio vars
     PaError  err = paNoError;
-    PaDeviceInfo *inputinfo, *outputinfo;
+    const PaDeviceInfo *inputinfo, *outputinfo;
     PaStreamParameters inparam, outparam;
     PaStream *handle;
     //buffers portaudio writes to

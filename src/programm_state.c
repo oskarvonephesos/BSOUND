@@ -21,9 +21,10 @@
 
 BSOUND* init_bsound(){
     BSOUND* bsound = (BSOUND*) malloc(sizeof(BSOUND));
-    bsound->bufsize               =BUF;
-    bsound->sample_rate           =SR;
-    bsound->default_buffer_length =SR;
+    bsound->bufsize               = BUF;
+    bsound->sample_rate           = SR;
+    bsound->default_buffer_length = SR;
+    bsound->wnd                   = NULL;
     bsound->num_ops               = 0;
     bsound->quit_flag             = 0;
     bsound->hi_damp               = 2-cos(20.0*MY_2_PI/bsound->sample_rate);

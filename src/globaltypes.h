@@ -55,10 +55,10 @@ typedef enum {
 typedef struct _BSOUND{
     int num_ops;
     int sample_rate;
-    long default_buffer_length;
+    int default_buffer_length;
     short num_chans;
-    long bufsize;
-    long out_of_range;
+    int bufsize;
+    int out_of_range;
     MYFLT hi_damp;
     struct _op_stack* head;
     bool quit_flag;

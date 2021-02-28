@@ -199,12 +199,13 @@ void display_attr(short *attr, int index, USR_IN type, int *display_loc){
 }
 void* input_handler(void* in){
     BSOUND* bsound = (BSOUND*) in;
-    WINDOW* wnd; char line[256]; char single_char; char name[256];
+    WINDOW* wnd = bsound->wnd; char line[256]; char single_char; char name[256];
     op_stack* cursor = (op_stack*) malloc(sizeof(op_stack));
     int max_y, max_x, single_int, i, offset = 0;
     bool refresh_flag = 0, repeat_flag = 0,  load = 0, delete_flag = 0;
     short num_attr = 0; short page;
     short input_loc[2], info_loc[2];
+    if (!wnd)
     wnd = initscr();
     keypad(wnd, TRUE);
     getmaxyx(wnd, max_y, max_x);
@@ -513,7 +514,7 @@ void* input_handler(void* in){
                     refresh_flag = 1; continue;
               } // this won't work on linux, so maybe conditionally compile...
                 else if (usr_in->type == MANUAL){
-                    int loc_length = strlen(bsound->programm_loc)-6;
+                    long loc_length = strlen(bsound->programm_loc)-6;
                     char* command = (char*)malloc(sizeof(char)*(loc_length+40));
                     char* temp_loc = (char*)malloc(sizeof(char)*loc_length+10);
                     memset(command, '\0', loc_length +40); memset(temp_loc, '\0', loc_length+10);
@@ -748,7 +749,7 @@ op_stack* load_st(BSOUND* bsound, short* print_loc){
     erase();
     COMMAND* command = (COMMAND* )malloc(sizeof(COMMAND));
     op_stack* cursor = (op_stack*) malloc(sizeof(op_stack));
-    int loc_length = strlen(bsound->programm_loc)-6;
+    long loc_length = strlen(bsound->programm_loc)-6;
     char* save_loc = (char*) malloc(sizeof(char)*(20+loc_length));
     char* temp_loc = (char*) malloc(sizeof(char)*(20+loc_length));
     char save_slot[10], line[128], single_char; int type, i, single_int;
@@ -858,7 +859,7 @@ op_stack* load_st(BSOUND* bsound, short* print_loc){
 }
 void save_st(BSOUND* bsound, short* print_loc){
     erase();
-    int loc_length = strlen(bsound->programm_loc)-6;
+    long loc_length = strlen(bsound->programm_loc)-6;
     char* save_loc = (char*) malloc(sizeof(char)*(20+loc_length));
     char* temp_loc = (char*) malloc(sizeof(char)*(20+loc_length));
     char save_slot[10], line[128], single_char; int i, single_int;

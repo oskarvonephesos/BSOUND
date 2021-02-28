@@ -26,7 +26,7 @@
 //@todo: text files should be in separate "resources folder"
 //@todo: startup message a bit corny?
 LOG_STATE init_log(const char* programm_location, BSOUND* bsound){
-    int loc_length = strlen(programm_location) - 6; //the six chars are "BSOUND"
+    long loc_length = strlen(programm_location) - 6; //the six chars are "BSOUND"
     char* log_loc = (char*)malloc((20+loc_length)*sizeof(char)); //magic numbers FTW
     char* read_loc = (char *)malloc((20+loc_length)*sizeof(char));
     char* line = (char*)malloc(256*sizeof(char));
@@ -63,7 +63,7 @@ LOG_STATE init_log(const char* programm_location, BSOUND* bsound){
         }
         else {
             int returnval;
-            fscanf(fp, " %d %ld", &returnval, &bsound->bufsize);
+            fscanf(fp, " %d %d", &returnval, &bsound->bufsize);
             bsound->mono_input = (bool) returnval;
         }
     }
@@ -88,14 +88,14 @@ LOG_STATE init_log(const char* programm_location, BSOUND* bsound){
     return NORMAL_LOAD;
 }
 void save_to_log(const char* programm_loc, BSOUND* bsound){
-    int loc_length = strlen(programm_loc) - 6; //the six chars are "BSOUND"
+    long loc_length = strlen(programm_loc) - 6; //the six chars are "BSOUND"
     char* log_loc = (char*)malloc((20+loc_length)*sizeof(char)); //magic numbers FTW
     FILE* fp;
     memset(log_loc, '\0', loc_length + 20 );
     memcpy(log_loc, programm_loc, loc_length);
     strcat(log_loc, "log.txt");
     fp = fopen(log_loc, "w");
-    fprintf(fp, "1 %d %ld", bsound->mono_input, bsound->bufsize);
+    fprintf(fp, "1 %d %d", bsound->mono_input, bsound->bufsize);
     fclose(fp);
     free (log_loc);
 }
