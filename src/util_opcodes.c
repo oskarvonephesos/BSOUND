@@ -62,7 +62,7 @@ MYFLT amp(MYFLT x_dB){
 void copylefttoright(float* input, BSOUND* bsound, int inchannels){
     int i, frameCount = bsound->bufsize*bsound->num_chans, j, numchans = bsound->num_chans, k;
     if (bsound->in_out_chanmatch){
-    for (j=0; j<numchans; j++){
+    for (j=0; j<numchans-inchannels; j++){
         k = (j + inchannels)%numchans;
         for (i=j; i<frameCount;){
             input[k]=input[i];

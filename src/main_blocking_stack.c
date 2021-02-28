@@ -261,13 +261,41 @@ int main(int argc, const char * argv[]) {
         outparam.sampleFormat = paFloat32;
 
         outputinfo=Pa_GetDeviceInfo(outparam.device);
+        while (inputinfo->maxInputChannels < 1 ){
+            printf("Your input device does not allow audio input\nPlease choose an appropriate device:\n");
+            int devicecount = Pa_GetDeviceCount(), my_device;
+            const PaDeviceInfo* myinfo;
+            for (i=0; i<devicecount; i++){
+                myinfo = Pa_GetDeviceInfo(i);
+                printf("Device number %d: %s\nNumber of input channels: %d\n", i, myinfo->name, myinfo->maxInputChannels);
+            }
+            printf("Please choose a device by typing it's number and hitting enter\n");
+            scanf("%d", &my_device);
+            inputinfo = Pa_GetDeviceInfo(my_device);
+            inparam.device = my_device;
+        }
+        while (outputinfo->maxOutputChannels < 1 ){
+            printf("Your output device does not allow audio output\nPlease choose an appropriate device:\n");
+            int devicecount = Pa_GetDeviceCount(), my_device;
+            const PaDeviceInfo* myinfo;
+            for (i=0; i<devicecount; i++){
+                myinfo = Pa_GetDeviceInfo(i);
+                printf("Device number %d: %s\nNumber of output channels: %d\n", i, myinfo->name, myinfo->maxOutputChannels);
+            }
+            printf("Please choose a device by typing it's number and hitting enter\n");
+            scanf("%d", &my_device);
+            outputinfo = Pa_GetDeviceInfo(my_device);
+            outparam.device = my_device;
+        }
         if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels )
             bsound->num_chans = outputinfo->maxOutputChannels;
         else
             bsound->num_chans = inputinfo->maxInputChannels;
-        if (bsound->num_chans > inputinfo->maxInputChannels){
+        if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels){
             bsound->mono_input = true;
             bsound->in_out_chanmatch= false;
+            printf("maxIn: %d; maxOut: %d", inputinfo->maxInputChannels, outputinfo->maxOutputChannels);
+            sleep(1);
         }
         inparam.channelCount = inputinfo->maxInputChannels;
         outparam.channelCount = outputinfo->maxOutputChannels;

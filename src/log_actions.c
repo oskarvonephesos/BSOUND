@@ -62,7 +62,9 @@ LOG_STATE init_log(const char* programm_location, BSOUND* bsound){
             return FIRST_LOAD;
         }
         else {
-            fscanf(fp, " %hd %ld", &bsound->mono_input, &bsound->bufsize);
+            int returnval;
+            fscanf(fp, " %d %ld", &returnval, &bsound->bufsize);
+            bsound->mono_input = (bool) returnval;
         }
     }
     else {
@@ -77,7 +79,7 @@ LOG_STATE init_log(const char* programm_location, BSOUND* bsound){
         fclose(f_read);
         }
         else
-            fprintf(stdout, "couldn't find resources \n");
+            fprintf(stdout, "couldn't open file \n");
         free(read_loc);
         free (log_loc);
         return FIRST_LOAD;

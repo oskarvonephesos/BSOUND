@@ -637,7 +637,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
 
                     if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                     if (kk>=inlength){kk-=inlength;}
-
+                    
                     if (attr[6]==0){
                     for (ii=0; ii<grain_length; ii++){
 
@@ -656,7 +656,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                         if (kk>=inlength){kk=0;}
                     }
                     }
-
+                    
                 }
                 jj++;
             }
@@ -1449,7 +1449,7 @@ void* init_reseq(BSOUND* bsound, USR_IN type){
             c     = cos(omega);
             s     = sin(omega);
             alpha = s* sinh(log(2.0)/2.0*data->bandwidth[i][j]*omega/s);
-
+            
             data->b0[i][j] = 1.0 + alpha*A;
             data->b1[i][j] = -2*c;
             data->b2[i][j] = 1.0-alpha*A;
@@ -1479,7 +1479,7 @@ void recalculate_coefficients(RESEQ_OPS* data, const BSOUND* bsound){
                 c     = cos(omega);
                 s     = sin(omega);
                 alpha = s* sinh(log(2.0)/2.0*data->bandwidth[i][j]*omega/s);
-
+                
                 data->b0[i][j] = 1.0 + alpha*A;
                 data->b1[i][j] = -2*c;
                 data->b2[i][j] = 1.0-alpha*A;

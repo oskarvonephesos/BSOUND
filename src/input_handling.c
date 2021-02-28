@@ -108,17 +108,17 @@ struct attr_parse attr_types[NUM_OPTIONS]={
         "ssfsdss", 5},
     {CLOUD, {"spread", "density", "grain length", "transpose", "volume", "skip", "reverse", "feedback"},
         {1,   1,   1,   1,   -60,       0,   0, 0},
-        {100, 300, 100, 190,  12,       100, 100, 100},
+        {100, 300, 100, 190,  12,       100, 1, 100},
         {100, 260,  70,  100,  0,       0, 0, 0},
         "sssidsss", 7},
     {SHIMMER, {"spread", "density", "grain length", "transpose", "volume", "skip", "wet", "feedback"},
         {1,   1,   1,   1,   -60,       0,   0, 0},
-        {100, 300, 100, 190,  12,       100, 100, 100},
+        {100, 300, 100, 190,  12,       100, 1, 100},
         {50, 190,  70,  180,  0,        0, 0, 0},
         "sssidsss", 7},
     {TRANSPOSE, {"spread", "density", "grain length", "transpose", "volume", "skip", "wet", "feedback"},
         {1,   1,   1,   1,   -60,       0,   0, 0},
-        {100, 300, 100, 190,  12,       100, 100, 100},
+        {100, 300, 100, 190,  12,       100, 1, 100},
         {100, 90,  70,  140,  0,        0, 0, 0},
         "sssidsss", 7},
     {REVERB, {"feedback", "filter", "modulation", "volume", "skip", "wet"},
@@ -300,7 +300,7 @@ void* input_handler(void* in){
                         mvprintw(max_y-1, (i+1)*x_spacing , "band %d", i);
                     }
                 }
-
+                
             }
                 refresh_flag = 0;
                 refresh();
