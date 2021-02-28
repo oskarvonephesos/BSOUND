@@ -30,6 +30,7 @@ BSOUND* init_bsound(){
     bsound->hi_damp               = (bsound->hi_damp  - sqrt(bsound->hi_damp *bsound->hi_damp - 1.0));
     bsound->out_of_range          = 0;
     bsound->mono_input            = 0;
+    bsound->in_out_chanmatch      = true;
     bsound->pause_flag            = 0;
     bsound->bypass_flag           = 0;
     bsound->record_flag           = 0;
