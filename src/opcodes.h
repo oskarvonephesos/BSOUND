@@ -50,6 +50,7 @@ typedef struct {
 } DELAY_OPS;
 typedef struct {
     RNGBUF* in;
+    MYFLT** err_term;
     RNGBUF* out;
     int* disttab; //vars for displacement tab
     int disttab_index;

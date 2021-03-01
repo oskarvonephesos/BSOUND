@@ -347,23 +347,23 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     switch (type){
         case CLOUD:
             data->grain_length        = 5000;
-            data->frequency           = 90; //every x samples one grain gets seeded
+            data->frequency           =90; //every x samples one grain gets seeded
             data->max_val             = 0.22;
             data->max_dist            = bsound->sample_rate*4;//max displacement of grain in samples; should be smaller then RNGBUFs
             data->curr_dist           = data->max_dist;
             data->transpose_frequency = 30; //every x grains one gets transposed
-            data->pitch_factor        = 1.0; //transpose interval
+            data->pitch_factor        =1.0; //transpose interval
             data->lp_freq             = 10000.0;
             //printf("spraying mist...\n\n");
             break;
         case SHIMMER:
             data->grain_length        = 6500;
-            data->frequency           = 90; //every x samples one grain gets seeded
+            data->frequency           =90; //every x samples one grain gets seeded
             data->max_val             = 0.20f;
             data->max_dist            = bsound->sample_rate*3;//max displacement of grain in samples; should be smaller then RNGBUFs
             data->curr_dist           = data->max_dist;
             data->transpose_frequency = 5; //every x grains one gets transposed
-            data->pitch_factor        = 2.0f; //transpose interval
+            data->pitch_factor        =2.0f; //transpose interval
             data->lp_freq             = 1500.0;
             //printf("sprinkling glitter...\n\n");
             break;
@@ -374,7 +374,7 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
             data->max_dist            = 5000;//max displacement of grain in samples; should be smaller than RNGBUFs
             data->curr_dist           = 20;
             data->transpose_frequency = 1; //every x grains one gets transposed
-            data->pitch_factor        = 1.5; //transpose interval
+            data->pitch_factor        =1.5; //transpose interval
             data->lp_freq             = 2500.0;
             //printf("activating robospeak...\n\n");
             break;
@@ -388,6 +388,9 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     int buf_length = bsound->sample_rate *4;
     data->in=alloc_rngbuf(bsound, buf_length);
     data->out = alloc_rngbuf(bsound, buf_length);
+    data->err_term = malloc(sizeof(MYFLT*)*bsound->num_chans);
+    for (i=0; i<bsound->num_chans; i++)
+        data->err_term[i]=(MYFLT*)calloc(sizeof(MYFLT*)*buf_length, 1);
     data->disttab_index  = 0;
     data->disttab_length =4096<<5;
 
@@ -452,6 +455,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     MYFLT** inval  = in->value;
     MYFLT * inch;
     MYFLT *outch;
+    MYFLT* err_term;
     MYFLT* transposed_val;
     int* disttab = data->disttab, d_index = data->disttab_index, d_length = data->disttab_length, d_redraw, i;
     //update from attr
@@ -575,8 +579,9 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                 jj = data->phs; //phs counter to ensure grain freq is constant over ksmp-periods
                 jjj = data->transpose_phs; //phs counter to ensure transpose freq is constant over ksmps periods
                 for (j=0; j<num_chans; j++){
-                    inch = inval[j];
-                    outch=outval[j];
+                    inch     = inval[j];
+                    outch    = outval[j];
+                    err_term = data->err_term[j];
                     transposed_val=transposed[j]->value;
                 for (i=1; i<to_write; i++){
                         if ((jj%frequency)==0){
@@ -588,8 +593,14 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                                 kk=(data->disttab[data->disttab_index++]%data->curr_dist)+data->out->index;//read from dist-tab
                                 if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                                 if (kk>=inlength){kk-=inlength;}
+                                MYFLT val, prv_val;
                                 for (ii=0; ii<grain_length; ii++){
-                                    outch[kk++]+=transposed_val[k++]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
+                                    val = transposed_val[k++]*env[ii];
+                                    prv_val = outch[kk];
+                                    outch[kk]   +=val;
+                                    err_term[kk]+= outch[kk]- val - prv_val;
+                                    kk++;
+                                    //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
                                     if (kk>=inlength){kk=0;}
                                     if (k>=inlength){k=0;}
                                 }
@@ -597,18 +608,41 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                         }
 
                             else {
-                            k = i+in->index; // read index
+                            if (attr[6]==0)
+                                k=in->index + i; //read index
+                            else
+                                k=in->index+i+grain_length;
                             if (k>= inlength ){k-=inlength;}
+
                             kk=(data->disttab[data->disttab_index++]%data->curr_dist)+out->index;//read from dist-tab
 
                             if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                             if (kk>=inlength){kk-=inlength;}
+                                MYFLT val, prv_val;
+                                if (attr[6]==0){
+                                for (ii=0; ii<grain_length; ii++){
+                                    val = inch[k++]*env[ii];
+                                    prv_val = outch[kk];
+                                    outch[kk]   +=val;
+                                    err_term[kk]+= outch[kk]- val - prv_val;
+                                    kk++; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
 
-                            for (ii=0; ii<grain_length; ii++){
-                                outch[kk++]+= inch[k++]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
-                                if (k>=inlength){k=0;}
-                                if (kk>=inlength){kk=0;}
-                            }
+                                    if (k>=inlength){k=0;}
+                                    if (kk>=inlength){kk=0;}
+                                }
+                                }
+                            else{
+                                for (ii=0; ii<grain_length; ii++){
+                                    val = inch[k--]*env[ii];
+                                    prv_val = outch[kk];
+                                    outch[kk]   +=val;
+                                    err_term[kk]+= outch[kk]- val - prv_val;
+                                    kk++; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
+
+                                    if (k<0){k+=inlength;}
+                                    if (kk>=inlength){kk=0;}
+                                }
+                                }
                         }
 
                             jjj++;
@@ -622,9 +656,9 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
         else {
         jj = data->phs; //phs counter to ensure grain freq is constant over ksmp-periods
         for (j=0; j<num_chans; j++){
-            inch = inval[j];
-            outch=outval[j];
-
+            inch     = inval[j];
+            outch    = outval[j];
+            err_term = data->err_term[j];
             for (i=0; i<to_write; i++){
                 if ((jj%frequency)==0){
                     if (attr[6]==0)
@@ -637,11 +671,14 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
 
                     if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                     if (kk>=inlength){kk-=inlength;}
-
+                    MYFLT val, prv_val;
                     if (attr[6]==0){
                     for (ii=0; ii<grain_length; ii++){
-
-                        outch[kk++]+=inch[k++]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
+                        val = inch[k++]*env[ii];
+                        prv_val = outch[kk];
+                        outch[kk]   +=val;
+                        err_term[kk]+= outch[kk]- val - prv_val;
+                        kk++; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
 
                         if (k>=inlength){k=0;}
                         if (kk>=inlength){kk=0;}
@@ -649,8 +686,11 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                     }
                 else{
                     for (ii=0; ii<grain_length; ii++){
-
-                        outch[kk++]+=inch[k--]*env[ii]; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
+                        val = inch[k--]*env[ii];
+                        prv_val = outch[kk];
+                        outch[kk]   +=val;
+                        err_term[kk]+= outch[kk]- val - prv_val;
+                        kk++; //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
 
                         if (k<0){k+=inlength;}
                         if (kk>=inlength){kk=0;}
@@ -679,9 +719,12 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
         if (kk<0){kk+=inlength;}
         ii=j;
         outch= outval[j];
+        err_term = data->err_term[j];
         for (i=0; i<frameCount; i++){
-            output[ii]=outch[k]*volume; //writes output
-            outch[kk++]=silence;
+            output[ii]=(outch[k]-err_term[k])*volume; //writes output
+            outch[kk]    =silence;
+            err_term[kk] = silence;
+            kk++;
             if (output[ii]>= 1.0){output[ii]=0.999f; /*bsound->out_of_range += 1;*/}
             if (output[ii]<= -1.0){output[ii]=-0.999f;/*bsound->out_of_range += 1;*/}
             ii+=num_chans;
