@@ -1,5 +1,7 @@
 bsound
 test
+audio_in
+audio_out
 */*.o
 #files dependent on user behaviour
 0
