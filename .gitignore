@@ -6,3 +6,5 @@ bsound
 2
 3
 log.txt
+.DS_STORE
+*/.DS_STORE
