@@ -1,4 +1,5 @@
 bsound
+test
 */*.o
 #files dependent on user behaviour
 0

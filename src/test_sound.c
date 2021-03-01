@@ -33,8 +33,8 @@
 #include "data_types.h"
 #include "programm_state.h"
 #include "opcodes.h"
-#include "../portaudio/portaudio.h"
-#include "../portaudio/pa_mac_core.h"
+#include "portaudio.h"
+#include "pa_mac_core.h"
 #include "input_handling.h"
 #include "opcodes.h"
 #include "util_opcodes.h"
@@ -50,6 +50,48 @@ void free_op_stack(op_stack* head, BSOUND* bsound){
             current->dealloc(bsound, current->func_st);
             current = current->next_op;
         }
+    }
+}
+int g_inch, g_outch;
+void test_input(PaStream* handle, float* samplein, BSOUND* bsound){
+    int i, j;
+    int frameCount = bsound->bufsize * bsound->in_chans;
+    MYFLT incr = MY_2_PI/bsound->bufsize;
+    short numChans = bsound->in_chans;
+    for (j=0; j<numChans; j++){
+        int k = 0;
+        for (i=j; i<frameCount;){
+            samplein[i] = 0.5 * sin(k*incr);
+            k++;
+            i+= numChans;
+        }
+    }
+}
+#define TAB_LENGTH 512
+void write_sine(float* samplein, BSOUND* bsound, long counter, FILE* fp, float* sin_tab){
+    int i, ii = 0, my_counter, index, j;
+    long bufsize = bsound->bufsize * bsound->num_chans;
+    short num_chans = bsound->num_chans;
+    my_counter  = 4;//(counter/5)%20 + 1;
+    for (j=0; j<num_chans; j++){
+        ii = 0;
+    for (i=j; i<bufsize; ){
+        index = my_counter*ii++;
+        if (index>=TAB_LENGTH){
+            while(index>=TAB_LENGTH)
+            {index-=TAB_LENGTH;}
+        }
+        samplein[i] = 0.5*sin_tab[index];
+        i += num_chans;
+    }
+    }
+    for (i=0; i<bufsize; i++)
+        fwrite(&(samplein[i]), sizeof(float), 1, fp);
+}
+void write_out(float* sampleout, BSOUND* bsound, FILE* fp){
+    int i;
+    for (i=0; i<bsound->bufsize*bsound->out_chans; i++){
+        fwrite(&(sampleout[i]), sizeof(float), 1, fp);
     }
 }
 typedef struct {
@@ -72,15 +114,10 @@ Record_info* r = (Record_info*) malloc(sizeof(Record_info));
     return r;
 }
 void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bsound, Record_info* r){
-    PaError  err = paNoError;
     int i, recordhead = r->readhead;
     //audio in
-    err = Pa_ReadStream(handle, input, bsound->bufsize);
-    if (err!= paNoError){
-        if (err==paInputUnderflow){
-            error_message("input underflow", bsound);
-        }
-    }
+    //Pa_ReadStream(handle, input, bsound->bufsize);
+    test_input(handle, input, bsound);
     if (bsound->mono_input)
     copylefttoright(input, bsound, 1);
     if (bsound->record_flag){
@@ -215,18 +252,17 @@ int main(int argc, const char * argv[]) {
     int i; bool OutOfRangeFlag;
     int num_devices;
     //port_audio vars
-    PaError  err = paNoError;
-    const PaDeviceInfo *inputinfo, *outputinfo;
-    PaStreamParameters inparam, outparam;
     PaStream *handle;
     //buffers portaudio writes to
     float *samplein, *sampleout, *temp1, *temp2, *recordbuf;
     //recordbuflength wraps index around at end of buffer
     //recordbegin points to reset point when we pass recordend
     //recordzero points to reset point when we pass buffer end
-    //input_handling thread
-    pthread_t input_handling;
     ///@todo: this has to be changed!!!///welcome text for new version
+    printf("GET SETTINGS FROM LOG FILE? (y/n)?\n");
+    char reply;
+    scanf("%c", &reply);
+    if (reply == 'y'){
     if (init_log(argv[0], bsound) == FIRST_LOAD){
         i=3;
         sleep(1); //count-down
@@ -236,124 +272,65 @@ int main(int argc, const char * argv[]) {
         sleep(1);
         }
         }
-    err = Pa_Initialize();
-    if (err== paNoError){
-        memset(&inparam, 0, sizeof(PaStreamParameters));
-        inparam.device = Pa_GetDefaultInputDevice();
-        if (inparam.device == paNoDevice){
-            printf("can't get default output device\n");
-            num_devices = Pa_GetDeviceCount();
-            printf("Please choose an input device! Number of devices: %d\n", num_devices);
-            for (i=0; i<num_devices; i++){
-                inputinfo = Pa_GetDeviceInfo(i);
-                printf("%d: ", i);
-            }
-        }
-        inparam.sampleFormat = paFloat32;
-
-        inputinfo=Pa_GetDeviceInfo(inparam.device);
-
-        memset(&outparam, 0, sizeof(PaStreamParameters));
-        outparam.device = Pa_GetDefaultOutputDevice();
-        if (outparam.device < 0){
-            printf("can't get default output device\n");
-        }
-        outparam.sampleFormat = paFloat32;
-
-        outputinfo=Pa_GetDeviceInfo(outparam.device);
-        while (inputinfo->maxInputChannels < 1 ){
-            printf("Your input device does not allow audio input\nPlease choose an appropriate device:\n");
-            int devicecount = Pa_GetDeviceCount(), my_device;
-            const PaDeviceInfo* myinfo;
-            for (i=0; i<devicecount; i++){
-                myinfo = Pa_GetDeviceInfo(i);
-                printf("Device number %d: %s\nNumber of input channels: %d\n", i, myinfo->name, myinfo->maxInputChannels);
-            }
-            printf("Please choose a device by typing it's number and hitting enter\n");
-            scanf("%d", &my_device);
-            inputinfo = Pa_GetDeviceInfo(my_device);
-            inparam.device = my_device;
-        }
-        while (outputinfo->maxOutputChannels < 1 ){
-            printf("Your output device does not allow audio output\nPlease choose an appropriate device:\n");
-            int devicecount = Pa_GetDeviceCount(), my_device;
-            const PaDeviceInfo* myinfo;
-            for (i=0; i<devicecount; i++){
-                myinfo = Pa_GetDeviceInfo(i);
-                printf("Device number %d: %s\nNumber of output channels: %d\n", i, myinfo->name, myinfo->maxOutputChannels);
-            }
-            printf("Please choose a device by typing it's number and hitting enter\n");
-            scanf("%d", &my_device);
-            outputinfo = Pa_GetDeviceInfo(my_device);
-            outparam.device = my_device;
-        }
-        if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels )
-            bsound->num_chans = outputinfo->maxOutputChannels;
+    }
+    int in_chans, out_chans;
+    printf("NUMBER OF IN CHANS?\n");
+    scanf("%d", &in_chans);
+    printf("NUMBER OF OUT CHANS?\n");
+    scanf("%d", &out_chans);
+    bsound->in_chans = in_chans;
+    bsound->out_chans = out_chans;
+        if (out_chans > in_chans )
+            bsound->num_chans = out_chans;
         else
-            bsound->num_chans = inputinfo->maxInputChannels;
-        if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels){
+            bsound->num_chans = in_chans;
+        if (out_chans > in_chans){
             bsound->mono_input = true;
             bsound->in_out_chanmatch= false;
-            printf("maxIn: %d; maxOut: %d", inputinfo->maxInputChannels, outputinfo->maxOutputChannels);
+            printf("maxIn: %d; maxOut: %d\n", in_chans, out_chans);
             sleep(1);
         }
-        inparam.channelCount = inputinfo->maxInputChannels;
-        bsound->in_chans = inputinfo->maxInputChannels;
-        outparam.channelCount = outputinfo->maxOutputChannels;
-        bsound->out_chans = outputinfo->maxOutputChannels;
-        inparam.suggestedLatency = inputinfo->defaultLowInputLatency ;
+    samplein  = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->in_chans), 1);
+    sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+    temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+    temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+    Record_info* myrecordinfo = init_recordinfo(bsound);
+    recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
 
-            inparam.hostApiSpecificStreamInfo = NULL;
-        outparam.suggestedLatency = outputinfo->defaultLowOutputLatency ;
-            outparam.hostApiSpecificStreamInfo = NULL;
-
-        err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag | (paMacCoreChangeDeviceParameters &paPlatformSpecificFlags), NULL, NULL);
-        if (err == paNoError){
-            err = Pa_StartStream(handle);
-            if (err==paNoError){
-                samplein  = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->in_chans), 1);
-                sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                Record_info* myrecordinfo = init_recordinfo(bsound);
-                recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
-                pthread_create(&input_handling, NULL, *(input_handler), (void *)bsound);
-                while(1){
-                    OutOfRangeFlag = 0;
-                    write_input(samplein, handle, recordbuf, bsound, myrecordinfo);
-                    apply_fx(samplein, sampleout, head, bsound, temp1, temp2);
-                    for (i=0; i<bsound->bufsize*bsound->num_chans; i++){
-                        if (sampleout[i]>1.0f){
-                            sampleout[i]=0.0f;
-                            OutOfRangeFlag = 1;
-                        }
-                        if (sampleout[i]< -1.0f){
-                            sampleout[i]=0.0f;
-                            OutOfRangeFlag = 1;
-                        }
-                    }
-                    if (bsound->pause_flag){
-                        for (i =0; i<bsound->bufsize*bsound->num_chans; i++)
-                        sampleout[i]= 0.0f;
-                    }
-                    err = Pa_WriteStream(handle, sampleout, bsound->bufsize);
-                    if (err!= paNoError){
-                        error_message(Pa_GetErrorText(err), bsound);
-                        if (err==paOutputUnderflow){
-                            error_message("output underflow", bsound);
-                        }
-                        else if (err==paOutputOverflow){
-                            error_message("output overflow", bsound);
-                        }
-                    }
-                    if (bsound->quit_flag)
-                        break;
-
+    printf("Opcode to test?\n");
+    char opcode_name[256];
+    scanf("%s", opcode_name);
+    COMMAND* usr_in = parse(opcode_name, 20);
+    usr_in->bsound = bsound; usr_in->cursor = NULL;
+    insert_op(bsound, usr_in);
+    int j = 0;
+    FILE *fin, *fout;
+    long loc_length = strlen(argv[0]) - 6;
+    char* write_in_loc = (char*)malloc(sizeof(char)* (loc_length + 16));
+    char* write_out_loc = (char*)malloc(sizeof(char)* (loc_length + 16));
+    memset(write_in_loc, '\0', loc_length + 16);
+    memcpy(write_in_loc, argv[0], loc_length);
+    memset(write_out_loc, '\0', loc_length + 16);
+    memcpy(write_out_loc, argv[0], loc_length);
+    strcat(write_in_loc, "audio_in");
+    strcat(write_out_loc, "audio_out");
+    fin = fopen(write_in_loc, "wb");
+    if (fin == NULL){
+        fprintf(stderr, "ERROR WRITING TO FILE\n");
+        return 0;
+    }
+    fout = fopen(write_out_loc, "wb");
+    if (fout == NULL){
+        fprintf(stderr, "ERROR WRITING TO OUT FILE\n");
+    }
+    while(j<2500){
+            write_input(samplein, handle, recordbuf, bsound, myrecordinfo);
+            apply_fx(samplein, sampleout, head, bsound, temp1, temp2);
+            write_out(sampleout, bsound, fout);
+            j++;
                 }
-                Pa_StopStream(handle);
                 save_to_log(argv[0], bsound);
-                pthread_join(input_handling, NULL);
-                printf("...\tstopping audio-stream\t");
+                //pthread_join(input_handling, NULL);
                 free(samplein);free(sampleout);free(temp1); free(temp2);
                 //deallocate resources!!!
                 free_op_stack(bsound->head, bsound);
@@ -361,13 +338,6 @@ int main(int argc, const char * argv[]) {
                     free(bsound->head);
                 free(bsound);
                 printf("...\tdeallocating resources\t");
-            }
-            else printf("%s \n", Pa_GetErrorText(err));
-            Pa_Terminate();
-        }
-        else printf("%s \n", Pa_GetErrorText(err));
-
-    }
 
     printf("...\t quit\n\n");
     return 0;

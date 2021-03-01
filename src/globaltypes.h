@@ -65,6 +65,8 @@ typedef struct _BSOUND{
     bool modify_flag;
     const char* programm_loc;
     bool mono_input;
+    short in_chans;
+    short out_chans;
     bool in_out_chanmatch;
     bool pause_flag;
     bool bypass_flag;

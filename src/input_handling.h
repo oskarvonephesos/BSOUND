@@ -28,4 +28,6 @@ void* input_handler(void* id );
 short which_attr_is_skip(int attr_num);
 void error_message(const char* message, BSOUND* bsound);
 
+COMMAND* parse(char* line, int length);
+int insert_op(BSOUND* bsound, COMMAND* command);
 #endif /* input_handling_h */

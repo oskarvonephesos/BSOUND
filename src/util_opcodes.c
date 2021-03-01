@@ -72,10 +72,12 @@ void copylefttoright(float* input, BSOUND* bsound, int inchannels){
     }
     }
     else {
-        frameCount = bsound->bufsize;
-        k=frameCount*numchans;
-        for (i=0; i<frameCount; i++){
+        short inchans = bsound->in_chans;
+        frameCount = bsound->bufsize*inchans;
+        k=bsound->bufsize*bsound->num_chans;
+        for (i=0; i<frameCount;){
             input[k++]=input[i];
+            i+= inchans;
         }
         for (j=0; j<numchans; j++){
             k = j;
