@@ -301,7 +301,7 @@ void* input_handler(void* in){
                         mvprintw(max_y-1, (i+1)*x_spacing , "band %d", i);
                     }
                 }
-                
+
             }
                 refresh_flag = 0;
                 refresh();
@@ -553,9 +553,17 @@ void* input_handler(void* in){
                         item->next_op->x = item->x + getlength(item) +4;
                         i++; item = item->next_op;
                     }
+                    erase(); noecho(); mvprintw(info_loc[0], max_x/3, "%s", creation_messages[usr_in->type]);
+                    refresh(); sleep(1);
                 }
-                erase(); noecho(); mvprintw(info_loc[0], max_x/3, "%s", creation_messages[usr_in->type]);
-                refresh(); sleep(1);
+                else {
+                      erase();
+                      mvprintw(info_loc[0], info_loc[1], "ERROR ALLOCATING REQUESTED EFFECT");
+                      mvprintw(info_loc[0]+2, info_loc[1], "PLEASE REPORT THIS ON GITHUB");
+                      refresh(); sleep(3);
+                      cursor = bsound->head;
+                }
+
                 refresh_flag = 1;
             }
 

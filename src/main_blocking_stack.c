@@ -257,6 +257,12 @@ int main(int argc, const char * argv[]) {
         outparam.device = Pa_GetDefaultOutputDevice();
         if (outparam.device < 0){
             printf("can't get default output device\n");
+            num_devices = Pa_GetDeviceCount();
+            printf("Please choose an input device! Number of devices: %d\n", num_devices);
+            for (i=0; i<num_devices; i++){
+                inputinfo = Pa_GetDeviceInfo(i);
+                printf("%d: ", i);
+            }
         }
         outparam.sampleFormat = paFloat32;
 
@@ -287,16 +293,15 @@ int main(int argc, const char * argv[]) {
             outputinfo = Pa_GetDeviceInfo(my_device);
             outparam.device = my_device;
         }
-        if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels )
+        if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels ){
             bsound->num_chans = outputinfo->maxOutputChannels;
-        else
-            bsound->num_chans = inputinfo->maxInputChannels;
-        if (outputinfo->maxOutputChannels > inputinfo->maxInputChannels){
             bsound->mono_input = true;
             bsound->in_out_chanmatch= false;
-            printf("maxIn: %d; maxOut: %d", inputinfo->maxInputChannels, outputinfo->maxOutputChannels);
-            sleep(1);
-        }
+            printf("Expecting input on %d channels and attempting output on %d channels.\n", inputinfo->maxInputChannels, outputinfo->maxOutputChannels);
+            sleep(2);
+            }
+        else
+            bsound->num_chans = inputinfo->maxInputChannels;
         inparam.channelCount = inputinfo->maxInputChannels;
         outparam.channelCount = outputinfo->maxOutputChannels;
         inparam.suggestedLatency = inputinfo->defaultLowInputLatency ;

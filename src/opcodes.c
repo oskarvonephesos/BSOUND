@@ -347,23 +347,23 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     switch (type){
         case CLOUD:
             data->grain_length        = 5000;
-            data->frequency           =90; //every x samples one grain gets seeded
+            data->frequency           = 90; //every x samples one grain gets seeded
             data->max_val             = 0.22;
             data->max_dist            = bsound->sample_rate*4;//max displacement of grain in samples; should be smaller then RNGBUFs
             data->curr_dist           = data->max_dist;
             data->transpose_frequency = 30; //every x grains one gets transposed
-            data->pitch_factor        =1.0; //transpose interval
+            data->pitch_factor        = 1.0; //transpose interval
             data->lp_freq             = 10000.0;
             //printf("spraying mist...\n\n");
             break;
         case SHIMMER:
             data->grain_length        = 6500;
-            data->frequency           =90; //every x samples one grain gets seeded
+            data->frequency           = 90; //every x samples one grain gets seeded
             data->max_val             = 0.20f;
             data->max_dist            = bsound->sample_rate*3;//max displacement of grain in samples; should be smaller then RNGBUFs
             data->curr_dist           = data->max_dist;
             data->transpose_frequency = 5; //every x grains one gets transposed
-            data->pitch_factor        =2.0f; //transpose interval
+            data->pitch_factor        = 2.0f; //transpose interval
             data->lp_freq             = 1500.0;
             //printf("sprinkling glitter...\n\n");
             break;
@@ -374,7 +374,7 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
             data->max_dist            = 5000;//max displacement of grain in samples; should be smaller than RNGBUFs
             data->curr_dist           = 20;
             data->transpose_frequency = 1; //every x grains one gets transposed
-            data->pitch_factor        =1.5; //transpose interval
+            data->pitch_factor        = 1.5; //transpose interval
             data->lp_freq             = 2500.0;
             //printf("activating robospeak...\n\n");
             break;
@@ -637,7 +637,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
 
                     if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                     if (kk>=inlength){kk-=inlength;}
-                    
+
                     if (attr[6]==0){
                     for (ii=0; ii<grain_length; ii++){
 
@@ -656,7 +656,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                         if (kk>=inlength){kk=0;}
                     }
                     }
-                    
+
                 }
                 jj++;
             }
@@ -1449,7 +1449,7 @@ void* init_reseq(BSOUND* bsound, USR_IN type){
             c     = cos(omega);
             s     = sin(omega);
             alpha = s* sinh(log(2.0)/2.0*data->bandwidth[i][j]*omega/s);
-            
+
             data->b0[i][j] = 1.0 + alpha*A;
             data->b1[i][j] = -2*c;
             data->b2[i][j] = 1.0-alpha*A;
@@ -1479,7 +1479,7 @@ void recalculate_coefficients(RESEQ_OPS* data, const BSOUND* bsound){
                 c     = cos(omega);
                 s     = sin(omega);
                 alpha = s* sinh(log(2.0)/2.0*data->bandwidth[i][j]*omega/s);
-                
+
                 data->b0[i][j] = 1.0 + alpha*A;
                 data->b1[i][j] = -2*c;
                 data->b2[i][j] = 1.0-alpha*A;
