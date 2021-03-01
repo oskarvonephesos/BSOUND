@@ -111,12 +111,12 @@ struct attr_parse attr_types[NUM_OPTIONS]={
         {100, 300, 100, 190,  12,       100, 1, 100},
         {100, 260,  70,  100,  0,       0, 0, 0},
         "sssidsss", 7},
-    {SHIMMER, {"spread", "density", "grain length", "transpose", "volume", "skip", "wet", "feedback"},
+    {SHIMMER, {"spread", "density", "grain length", "transpose", "volume", "skip", "reverse", "feedback"},
         {1,   1,   1,   1,   -60,       0,   0, 0},
         {100, 300, 100, 190,  12,       100, 1, 100},
         {50, 190,  70,  180,  0,        0, 0, 0},
         "sssidsss", 7},
-    {TRANSPOSE, {"spread", "density", "grain length", "transpose", "volume", "skip", "wet", "feedback"},
+    {TRANSPOSE, {"spread", "density", "grain length", "transpose", "volume", "skip", "reverse", "feedback"},
         {1,   1,   1,   1,   -60,       0,   0, 0},
         {100, 300, 100, 190,  12,       100, 1, 100},
         {100, 90,  70,  140,  0,        0, 0, 0},
@@ -553,17 +553,15 @@ void* input_handler(void* in){
                         item->next_op->x = item->x + getlength(item) +4;
                         i++; item = item->next_op;
                     }
-                    erase(); noecho(); mvprintw(info_loc[0], max_x/3, "%s", creation_messages[usr_in->type]);
-                    refresh(); sleep(1);
                 }
                 else {
                       erase();
-                      mvprintw(info_loc[0], info_loc[1], "ERROR ALLOCATING REQUESTED EFFECT");
-                      mvprintw(info_loc[0]+2, info_loc[1], "PLEASE REPORT THIS ON GITHUB");
+                      mvprintw(info_loc[0], info_loc[1], "ERROR creating opcode");
+                      mvprintw(info_loc[0]+2, info_loc[1], "PLEASE REPORT THIS");
                       refresh(); sleep(3);
-                      cursor = bsound->head;
                 }
-
+                erase(); noecho(); mvprintw(info_loc[0], max_x/3, "%s", creation_messages[usr_in->type]);
+                refresh(); sleep(1);
                 refresh_flag = 1;
             }
 
