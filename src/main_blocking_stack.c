@@ -336,6 +336,9 @@ int main(int argc, const char * argv[]) {
                         for (i =0; i<bsound->bufsize*bsound->num_chans; i++)
                         sampleout[i]= 0.0f;
                     }
+                    if (bsound->out_chans != bsound->num_chans){
+                          match_outputchannels(sampleout, bsound);
+                    }
                     err = Pa_WriteStream(handle, sampleout, bsound->bufsize);
                     if (err!= paNoError){
                         error_message(Pa_GetErrorText(err), bsound);

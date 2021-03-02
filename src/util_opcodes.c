@@ -91,3 +91,25 @@ void copylefttoright(float* input, BSOUND* bsound, int inchannels){
         }
     }
 }
+void match_outputchannels(float* output, BSOUND* bsound){
+      short numChans = bsound->num_chans;
+      int i, frameCount = bsound->bufsize * bsound->num_chans;
+      int k = frameCount, j, outChans = bsound->out_chans;
+      for (j=0; j<outChans; j++){
+            k = frameCount + j;
+            for (i=j; i<frameCount;){
+            output[k] = output[i];
+            i += numChans;
+            k += outChans;
+            }
+      }
+      frameCount = bsound->bufsize * bsound->out_chans;
+      for (j=0; j<outChans; j++){
+            k = bsound->bufsize * bsound->num_chans + j;
+            for (i=j; i<frameCount;){
+                  output[i]=output[k];
+                  i += outChans;
+                  k += outChans;
+            }
+      }
+}

@@ -291,7 +291,7 @@ int main(int argc, const char * argv[]) {
             sleep(1);
         }
     samplein  = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->in_chans), 1);
-    sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+    sampleout = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->out_chans), 1);
     temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
     temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
     Record_info* myrecordinfo = init_recordinfo(bsound);
@@ -304,21 +304,12 @@ int main(int argc, const char * argv[]) {
     usr_in->bsound = bsound; usr_in->cursor = NULL;
     insert_op(bsound, usr_in);
     int j = 0;
-    FILE *fin, *fout;
+    FILE *fout;
     long loc_length = strlen(argv[0]) - 6;
-    char* write_in_loc = (char*)malloc(sizeof(char)* (loc_length + 16));
     char* write_out_loc = (char*)malloc(sizeof(char)* (loc_length + 16));
-    memset(write_in_loc, '\0', loc_length + 16);
-    memcpy(write_in_loc, argv[0], loc_length);
     memset(write_out_loc, '\0', loc_length + 16);
     memcpy(write_out_loc, argv[0], loc_length);
-    strcat(write_in_loc, "audio_in");
     strcat(write_out_loc, "audio_out");
-    fin = fopen(write_in_loc, "wb");
-    if (fin == NULL){
-        fprintf(stderr, "ERROR WRITING TO FILE\n");
-        return 0;
-    }
     fout = fopen(write_out_loc, "wb");
     if (fout == NULL){
         fprintf(stderr, "ERROR WRITING TO OUT FILE\n");
@@ -326,6 +317,9 @@ int main(int argc, const char * argv[]) {
     while(j<2500){
             write_input(samplein, handle, recordbuf, bsound, myrecordinfo);
             apply_fx(samplein, sampleout, head, bsound, temp1, temp2);
+            if (bsound->out_chans != bsound->num_chans){
+                  match_outputchannels(sampleout, bsound);
+            }
             write_out(sampleout, bsound, fout);
             j++;
                 }

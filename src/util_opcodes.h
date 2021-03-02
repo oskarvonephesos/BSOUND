@@ -25,6 +25,7 @@
 #include "programm_state.h"
 ///utilities
 void copylefttoright(float* input, BSOUND* bsound, int inchannels);
+void match_outputchannels(float* output, BSOUND* bsound);
 MYFLT dB(MYFLT x); ///conversion utilities
 MYFLT amp(MYFLT x_dB);
 double dc_offset(float* input, BSOUND* bsound); ///measurement utilities

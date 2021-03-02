@@ -24,3 +24,7 @@ Before running the makefile download the portaudio code for your operating syste
 before relocating the executable:
 
 The loading and saving expect 4 files for the save slots; saving will just create files if none are in the expected place, but loading will complain, so keep that in mind if you relocate the executable. Likewise, BSOUND expects the "manual" and "welcome text" files included in this repository to be in the same directory as the executable (and will likely throw an error otherwise).
+
+# TESTING
+
+If for some strange reason, you would like to perform tests on BSOUND, 'make test' will generate an executable for that purpose. Currently, I only use this capability to test  in-out-channel-configurations that I can't test in hardware. 'test' will produce a binary audio file, that the likes of audacity can decode (import raw data is your friend).
