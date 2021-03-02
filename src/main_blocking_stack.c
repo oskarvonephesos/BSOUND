@@ -312,7 +312,7 @@ int main(int argc, const char * argv[]) {
             err = Pa_StartStream(handle);
             if (err==paNoError){
                 samplein  = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->in_chans), 1);
-                sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+                sampleout = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->out_chans), 1);
                 temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 Record_info* myrecordinfo = init_recordinfo(bsound);
