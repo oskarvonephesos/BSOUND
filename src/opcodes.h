@@ -73,6 +73,11 @@ typedef struct {
     MYFLT max_val; //output scaling
 } PARTIKKEL_OPS;
 
+
+typedef struct{
+    RNGBUF* aux;
+} ALLPASS_OPS;
+
 typedef struct {
     RNGBUF* in;
     RNGBUF* out;
@@ -84,8 +89,12 @@ typedef struct {
     MYFLT fdbk;
     MYFLT output_scaling;
     int random_speed;
-    ///prv lp_frq and lp_frq might be a way to do k-rate changes of lp-freq
+    ALLPASS_OPS* allpass1;
+    ALLPASS_OPS* allpass2;
+    ALLPASS_OPS* allpass3;
+    ALLPASS_OPS* allpass4;
 } RESON_OPS;
+
 typedef struct {
     MYFLT* modulator;
     MYFLT freq;
@@ -161,6 +170,9 @@ void* init_reson(BSOUND* bsound, USR_IN type);
 void dealloc_reson(BSOUND* bsound, void* data);
 void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* data);
 void reson(float *input, float* output, void* data_st, const short* attr, const BSOUND* bsound);
+void* init_allpass(BSOUND* bsound, int buf_length);
+void dealloc_allpass(BSOUND* bsound, void* data);
+void allpass(RNGBUF* buf, const MYFLT feedback, ALLPASS_OPS* data, const BSOUND* bsound);
 
 void* init_moddemod(BSOUND* bsound, USR_IN type);
 void dealloc_moddemod(BSOUND* bsound, void* data);

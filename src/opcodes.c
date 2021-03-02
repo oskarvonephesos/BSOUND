@@ -833,6 +833,10 @@ void* init_reson(BSOUND* bsound, USR_IN type){
     for (i=0; i<data->num_lines; i++){
         randomize_delay_line(data->resonator[i], bsound, data);
     }
+    data->allpass1 = init_allpass(bsound, 1553);
+    data->allpass2 = init_allpass(bsound, 1277);
+    data->allpass3 = init_allpass(bsound, 1871);
+    data->allpass4 = init_allpass(bsound, 1601);
     return data;
 }
 void dealloc_reson(BSOUND* bsound, void* data_st){
@@ -844,6 +848,10 @@ void dealloc_reson(BSOUND* bsound, void* data_st){
     free (data->resonator);
     dealloc_rngbuf(data->in, bsound);
     dealloc_rngbuf(data->out, bsound);
+    dealloc_allpass(bsound, (void*)data->allpass1);
+    dealloc_allpass(bsound, (void*)data->allpass2);
+    dealloc_allpass(bsound, (void*)data->allpass3);
+    dealloc_allpass(bsound, (void*)data->allpass4);
 }
 void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* data){
     MYFLT current_delay = fabs( ((MYFLT)line->index) - line->read_index);
@@ -909,6 +917,10 @@ void reson(float *input, float* output, void* data_st, const short* attr, const 
             if (k>=inlength){k=0;}
         }
     }
+        allpass(in, 0.3, data->allpass1, bsound);
+        allpass(in, 0.3, data->allpass2, bsound);
+        allpass(in, 0.3, data->allpass3, bsound);
+        allpass(in, 0.3, data->allpass4, bsound);
     for (j=0; j<data->num_lines; j++){
         jj=j%bsound->num_chans;
         //buffers
@@ -984,6 +996,38 @@ void reson(float *input, float* output, void* data_st, const short* attr, const 
         }
     }
     out->index = k;
+}
+void* init_allpass(BSOUND* bsound, int buf_length){
+    ALLPASS_OPS* data = (ALLPASS_OPS*)malloc(sizeof(ALLPASS_OPS));
+    data->aux = alloc_rngbuf(bsound, buf_length);
+    return data;
+}
+void dealloc_allpass(BSOUND* bsound, void* data){
+    ALLPASS_OPS* data_st = (ALLPASS_OPS*) data;
+    dealloc_rngbuf(data_st->aux, bsound);
+    free(data_st);
+}
+void allpass(RNGBUF* buf, const MYFLT feedback, ALLPASS_OPS* data, const BSOUND* bsound){
+    int i, ii, j, k, frame_count = bsound->bufsize, inlength, auxlength;
+    MYFLT* inch, *aux;
+    short num_chans = bsound->num_chans;
+    for (j=0; j<num_chans; j++){
+        inch = buf->value[j];
+        aux = data->aux->value[j];
+        ii = buf->index;
+        k = data->aux->index;
+        inlength = buf->length;
+        auxlength = data->aux->length;
+        MYFLT y, z;
+        for(i=0; i<frame_count; i++){
+            y = aux[k];
+            z = aux[k++]=inch[ii] + feedback*y;
+            inch[ii]= y - z * feedback ;
+            ii++;
+            if (k>=auxlength){k=0;}
+            if (ii>=inlength){ii=0;}
+        }
+    }
 }
 ///@todo add bias control to moddemod
 void* init_moddemod(BSOUND* bsound, USR_IN type){
