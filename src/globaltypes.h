@@ -60,7 +60,7 @@ typedef struct _BSOUND{
     int bufsize;
     int out_of_range;
     MYFLT hi_damp;
-    struct _op_stack* head;
+    struct _OP_STACK* head;
     bool quit_flag;
     bool modify_flag;
     const char* programm_loc;
@@ -76,27 +76,27 @@ typedef struct _BSOUND{
     bool filter_bank_active;
     bool filter_bank_exists;
     } BSOUND;
-typedef struct _op_stack{
+typedef struct _OP_STACK{
     //operator
     void (*func)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
     //dealloc function
     void (*dealloc)(BSOUND* bsound, void* data);
     //function data
     void * func_st;
-    struct _op_stack *next_op;
-    struct _op_stack *previous_op;
+    struct _OP_STACK *next_op;
+    struct _OP_STACK *previous_op;
     //quick access to original type
     USR_IN type;
     int y;
     int x;
     short* attr;
-}op_stack;
+}OP_STACK;
 typedef struct {
-    op_stack** head;
+    OP_STACK** head;
     void (*operator)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
     void* (*init)(BSOUND* bsound,  USR_IN type);
     void (*dealloc)(BSOUND* bsound, void* data);
-    op_stack* cursor;
+    OP_STACK* cursor;
     BSOUND* bsound;
     USR_IN type;
     bool push_flag;

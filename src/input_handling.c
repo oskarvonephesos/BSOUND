@@ -33,11 +33,11 @@ char save_slots[4][32]={"esja", "grettisgata", "harpa", "reykjadalur"};
 COMMAND* parse(char* line, int length);
 int autocomplete(char* instring, int length);
 int insert_op(BSOUND* bsound, COMMAND* command);
-char* getname(op_stack* item);
-int getlength(op_stack* item);
+char* getname(OP_STACK* item);
+int getlength(OP_STACK* item);
 int display_stack(BSOUND* bsound, int max_x, int max_y);
-void delete_item(BSOUND* bsound, op_stack* cursor);
-op_stack* load_st(BSOUND* bsound, short* print_loc);
+void delete_item(BSOUND* bsound, OP_STACK* cursor);
+OP_STACK* load_st(BSOUND* bsound, short* print_loc);
 void save_st(BSOUND* bsound, short* print_loc);
 void display_preferences_menu(BSOUND* bsound, short* print_loc);
 
@@ -202,7 +202,7 @@ void* input_handler(void* in){
     BSOUND* bsound = (BSOUND*) in;
     WINDOW* wnd = bsound->wnd; char* line; char single_char; char name[256];
     line = (char*) calloc(sizeof(char)*256, 1);
-    op_stack* cursor = (op_stack*) malloc(sizeof(op_stack));
+    OP_STACK* cursor = (OP_STACK*) malloc(sizeof(OP_STACK));
     int max_y, max_x, single_int, i, offset = 0;
     bool refresh_flag = 0, repeat_flag = 0,  load = 0, delete_flag = 0;
     short num_attr = 0; short page;
@@ -314,7 +314,7 @@ void* input_handler(void* in){
                 delete_item(bsound, cursor);
                 cursor = bsound->head;
                 delete_flag = 0;
-                op_stack* item = bsound->head; i = 0;
+                OP_STACK* item = bsound->head; i = 0;
                 bsound->head->x = 7; bsound->head->y = max_y-2;
                 while (i<bsound->num_ops){
                     if (item->next_op == NULL){
@@ -587,7 +587,7 @@ void* input_handler(void* in){
                 }
                 usr_in->bsound = bsound; usr_in->cursor = cursor;
                 if (insert_op(bsound, usr_in)==0){
-                    op_stack* item = bsound->head; i = 0;
+                    OP_STACK* item = bsound->head; i = 0;
                     cursor = bsound->head;
                     while (i<bsound->num_ops){
                         if (item->next_op == NULL){
@@ -716,14 +716,14 @@ COMMAND* parse(char* line, int length){
     }
     return out_command;
 }
-char* getname(op_stack* item){
+char* getname(OP_STACK* item){
     return all_types[item->type].name;
 }
-int getlength(op_stack* item){
+int getlength(OP_STACK* item){
     return all_types[item->type].name_length;
 }
 int display_stack(BSOUND* bsound, int max_x, int max_y){
-    op_stack* current = bsound->head; int i = 0; int offset = 0;
+    OP_STACK* current = bsound->head; int i = 0; int offset = 0;
     while (i<bsound->num_ops){
         offset+=getlength(current) +4;
         current = current->next_op; i++;
@@ -744,7 +744,7 @@ int display_stack(BSOUND* bsound, int max_x, int max_y){
     return offset;
 }
 int insert_op(BSOUND* bsound, COMMAND* command){
-    op_stack* new = (op_stack*)malloc(sizeof(op_stack));
+    OP_STACK* new = (OP_STACK*)malloc(sizeof(OP_STACK));
     new->dealloc = command->dealloc;
     new->func = command->operator;
     new->func_st = command->init(bsound, command->type);
@@ -797,7 +797,7 @@ int insert_op(BSOUND* bsound, COMMAND* command){
         return -1;
     }
 }
-void delete_item(BSOUND* bsound, op_stack* cursor){
+void delete_item(BSOUND* bsound, OP_STACK* cursor){
     if (bsound->num_ops == 1){
         bsound->num_ops--;
         bsound->head->dealloc(bsound, bsound->head->func_st);
@@ -815,10 +815,10 @@ void delete_item(BSOUND* bsound, op_stack* cursor){
         //cursor = bsound->head;
     }
 }
-op_stack* load_st(BSOUND* bsound, short* print_loc){
+OP_STACK* load_st(BSOUND* bsound, short* print_loc){
     erase();
     COMMAND* command = (COMMAND* )malloc(sizeof(COMMAND));
-    op_stack* cursor = (op_stack*) malloc(sizeof(op_stack));
+    OP_STACK* cursor = (OP_STACK*) malloc(sizeof(OP_STACK));
     long loc_length = strlen(bsound->programm_loc)-6;
     char* save_loc = (char*) malloc(sizeof(char)*(20+loc_length));
     char* temp_loc = (char*) malloc(sizeof(char)*(20+loc_length));
@@ -898,7 +898,7 @@ op_stack* load_st(BSOUND* bsound, short* print_loc){
                 cursor->next_op = NULL;
             command->cursor = cursor;
             if (insert_op(bsound, command)==0){
-                op_stack* item = bsound->head; int scan_val, j=0;
+                OP_STACK* item = bsound->head; int scan_val, j=0;
                 while (item->next_op)
                     item=item->next_op;
                 i = 0;

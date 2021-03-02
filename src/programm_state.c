@@ -40,8 +40,8 @@ BSOUND* init_bsound(){
     bsound->filter_bank_exists    = 0;
     return bsound;
 }
-struct _op_stack* init_head (){
-    op_stack* head    = (op_stack*) malloc (sizeof(op_stack));
+OP_STACK* init_head (){
+    OP_STACK* head    = (OP_STACK*) malloc (sizeof(OP_STACK));
     head->func        = NULL;
     head->next_op     = NULL;
     head->previous_op = NULL;

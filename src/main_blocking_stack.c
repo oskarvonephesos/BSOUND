@@ -33,8 +33,8 @@
 #include "data_types.h"
 #include "programm_state.h"
 #include "opcodes.h"
-#include "../portaudio/portaudio.h"
-#include "../portaudio/pa_mac_core.h"
+#include "portaudio.h"
+#include "pa_mac_core.h"
 #include "input_handling.h"
 #include "opcodes.h"
 #include "util_opcodes.h"
@@ -42,8 +42,8 @@
 #include <unistd.h>
 
 ///this was originally in stack_actions, but has been moved here since stack_actions was decomissioned
-void free_op_stack(op_stack* head, BSOUND* bsound){
-    op_stack * current= head;
+void free_op_stack(OP_STACK* head, BSOUND* bsound){
+    OP_STACK * current= head;
     int i;
     if (bsound->num_ops != 0){
         for (i= 0; i<bsound->num_ops; i++){
@@ -61,9 +61,9 @@ typedef struct {
     int recordend;
     int recordzero;
     int readhead;
-}Record_info;
-Record_info* init_recordinfo(BSOUND* bsound){
-Record_info* r = (Record_info*) malloc(sizeof(Record_info));
+}RECORD_INFO;
+RECORD_INFO* init_recordinfo(BSOUND* bsound){
+RECORD_INFO* r = (RECORD_INFO*) malloc(sizeof(RECORD_INFO));
     r->bypass_active = 0;
     r->record_active = 0;
     r->recordbuflength =300000;//bsound->sample_rate*4* bsound->num_chans;
@@ -71,7 +71,7 @@ Record_info* r = (Record_info*) malloc(sizeof(Record_info));
     r->crosses_zero = false;
     return r;
 }
-void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bsound, Record_info* r){
+void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bsound, RECORD_INFO* r){
     PaError  err = paNoError;
     int i, recordhead = r->readhead;
     //audio in
@@ -166,10 +166,10 @@ void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bso
     }
     r->readhead = recordhead;
 }
-void apply_fx(float* input, float* output, op_stack* head, BSOUND* bsound, float* temp1, float* temp2){
+void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float* temp1, float* temp2){
     int i, skip_total = 0;
     float* temp;
-    op_stack* current_op = head;
+    OP_STACK* current_op = head;
     if (bsound->num_ops == 0){
         for (i=0; i<bsound->bufsize*bsound->num_chans; i++){
             output[i]=0.0f;
@@ -210,7 +210,7 @@ void apply_fx(float* input, float* output, op_stack* head, BSOUND* bsound, float
 int main(int argc, const char * argv[]) {
     BSOUND * bsound = init_bsound();
     bsound->programm_loc = argv[0];
-    op_stack* head = init_head();
+    OP_STACK* head = init_head();
     bsound->head = head;
     int i; bool OutOfRangeFlag;
     int num_devices;
@@ -312,10 +312,10 @@ int main(int argc, const char * argv[]) {
             err = Pa_StartStream(handle);
             if (err==paNoError){
                 samplein  = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->in_chans), 1);
-                sampleout = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->out_chans), 1);
+                sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                Record_info* myrecordinfo = init_recordinfo(bsound);
+                RECORD_INFO* myrecordinfo = init_recordinfo(bsound);
                 recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
                 pthread_create(&input_handling, NULL, *(input_handler), (void *)bsound);
                 while(1){
@@ -335,9 +335,6 @@ int main(int argc, const char * argv[]) {
                     if (bsound->pause_flag){
                         for (i =0; i<bsound->bufsize*bsound->num_chans; i++)
                         sampleout[i]= 0.0f;
-                    }
-                    if (bsound->out_chans != bsound->num_chans){
-                          match_outputchannels(sampleout, bsound);
                     }
                     err = Pa_WriteStream(handle, sampleout, bsound->bufsize);
                     if (err!= paNoError){

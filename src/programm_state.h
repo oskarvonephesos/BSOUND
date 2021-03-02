@@ -37,6 +37,6 @@
 #define BUF 128
 #endif
 BSOUND* init_bsound(void);
-op_stack* init_head (void);
+OP_STACK* init_head (void);
 
 #endif /* programm_state_h */
