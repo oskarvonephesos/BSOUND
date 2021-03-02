@@ -594,15 +594,30 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                                 if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                                 if (kk>=inlength){kk-=inlength;}
                                 MYFLT val, prv_val;
-                                for (ii=0; ii<grain_length; ii++){
-                                    val = transposed_val[k++]*env[ii];
-                                    prv_val = outch[kk];
-                                    outch[kk]   +=val;
-                                    err_term[kk]+= outch[kk]- val - prv_val;
-                                    kk++;
-                                    //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
-                                    if (kk>=inlength){kk=0;}
-                                    if (k>=inlength){k=0;}
+                                if (attr[6]==0){
+                                    for (ii=0; ii<grain_length; ii++){
+                                        val = transposed_val[k++]*env[ii];
+                                        prv_val = outch[kk];
+                                        outch[kk]   +=val;
+                                        err_term[kk]+= outch[kk]- val - prv_val;
+                                        kk++;
+                                        //at appropriate point (determined by disttab) writes values in "in" multiplied by env (channel j) to out
+                                        if (kk>=inlength){kk=0;}
+                                        if (k>=inlength){k=0;}
+                                    }
+                                }
+                                else {
+                                    k += grain_length;
+                                    if (k>=inlength){k-=inlength;}
+                                    for (ii=0; ii<grain_length; ii++){
+                                        val = transposed_val[k--]*env[ii];
+                                        prv_val = outch[kk];
+                                        outch[kk]+= val;
+                                        err_term[kk]+=outch[kk]-val-prv_val;
+                                        kk++;
+                                        if (kk>=inlength){kk=0;}
+                                        if (k<0){k+=inlength;}
+                                    }
                                 }
 
                         }
