@@ -490,6 +490,15 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     MYFLT f0, f1, f2, f3;
     MYFLT x, index, max_val = data->max_val;
     MYFLT feedback = (MYFLT)attr[7]/100.0;
+    // this limits the amount of available feedback at low spread settings
+    //  spread
+    if (attr[0]<10){
+        short new_attr;
+        if (attr[7]>50){
+            new_attr = (short) (50.0 + (attr[0])/10.0 * (attr[7]-50.0));
+            feedback = (MYFLT) new_attr/100.0;
+    }
+    }
     int x0, x1, x2, x3;
     //check if the grain_length has changed since last k-cycle
     if (data->envtab_length != grain_length){
@@ -843,11 +852,14 @@ void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* dat
     MYFLT rand_min      = current_delay-100<0?0                               :-100;
     int linseg_x        = rand_int(data->random_speed * 0.9, data->random_speed * 1.1); //k-cycles
     MYFLT linseg_y      = rand_float(rand_min, rand_max);
-    if (data->random_speed == MAX_RANDOMIZE_SPEED)
+    if (data->random_speed == -1){
         line->read_incr = 1.0;
-    else
+        line->linseg_rmns = MAX_RANDOMIZE_SPEED;
+    }
+    else{
     line->read_incr   = 1.0 + (linseg_y/linseg_x)/bsound->bufsize;
     line->linseg_rmns = linseg_x;
+    }
 }
 void reson(float *input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
     RESON_OPS* data = (RESON_OPS*) data_st;
@@ -873,10 +885,13 @@ void reson(float *input, float* output, void* data_st, const short* attr, const 
     else if (data->num_lines == 8){
        output_scaling = data->output_scaling = 0.7289-0.5778*data->fdbk;
     }
-    if (attr[2])
-    data->random_speed = (int)( MAX_RANDOMIZE_SPEED / 100.0* ((100.0-attr[2])/100.0))+15;
+    if (attr[2]){
+    data->random_speed = (int)( MAX_RANDOMIZE_SPEED / 5* ((100.0-attr[2])/100.0))+15;
+    data->random_speed *= 128.0;
+    data->random_speed /= bsound->bufsize;
+    }
     else
-        data->random_speed = MAX_RANDOMIZE_SPEED;
+        data->random_speed = -1;
     if (data->lp_freq != data->prv_lp_freq){
         dampfactor = 2-cos(data->lp_freq *MY_2_PI/bsound->sample_rate);
         dampfactor = dampfactor - sqrt(dampfactor*dampfactor - 1.0);
@@ -1314,7 +1329,6 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
                 data->read_factor = 4.0;
         }
     }
-    data->lp_freq = attr_to_freq_conv(attr[2]);
     MYFLT read_factor =  1.0f / data->read_factor;
     MYFLT* in_tab;
     MYFLT** samp_reduced = data->samp_reduced;
@@ -1325,6 +1339,7 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
     short num_chans = bsound->num_chans;
     int i, ii, j, jj, k, tab_length = data->tab_length;
     long frameCount = bsound->bufsize;
+    data->lp_freq = attr_to_freq_conv(attr[2]);
     if (data->lp_freq != data->prv_lp_freq){
         damp_factor = 2.0-cos(data->lp_freq*MY_2_PI/bsound->sample_rate);
         damp_factor = damp_factor-sqrt(damp_factor*damp_factor-1.0);
