@@ -31,6 +31,7 @@ char save_slots[4][32]={"esja", "grettisgata", "harpa", "reykjadalur"};
 #define NUM_SAVE_SLOTS 4
 #endif
 COMMAND* parse(char* line, int length);
+int autocomplete(char* instring, int length);
 int insert_op(BSOUND* bsound, COMMAND* command);
 char* getname(op_stack* item);
 int getlength(op_stack* item);
@@ -199,7 +200,8 @@ void display_attr(short *attr, int index, USR_IN type, int *display_loc){
 }
 void* input_handler(void* in){
     BSOUND* bsound = (BSOUND*) in;
-    WINDOW* wnd = bsound->wnd; char line[256]; char single_char; char name[256];
+    WINDOW* wnd = bsound->wnd; char* line; char single_char; char name[256];
+    line = (char*) calloc(sizeof(char)*256, 1);
     op_stack* cursor = (op_stack*) malloc(sizeof(op_stack));
     int max_y, max_x, single_int, i, offset = 0;
     bool refresh_flag = 0, repeat_flag = 0,  load = 0, delete_flag = 0;
@@ -467,7 +469,7 @@ void* input_handler(void* in){
                     ; // do something
             }
             if (single_char == ':'){
-                echo();
+                noecho();
                 mvprintw(input_loc[0], input_loc[1], "INPUT: ");
                 mvprintw(info_loc[0], info_loc[1], "      OPCODES:\n \t\tdelay\t\ttape\t\tpingpong\tmultitap");
                 mvprintw(info_loc[0]+2, 0, "\t\tshimmer\t\tcloud \t\ttranspose\tringmod");
@@ -480,7 +482,49 @@ void* input_handler(void* in){
                 mvprintw(info_loc[0]+9, info_loc[1], "'preferences' for preferences ");
                 move(input_loc[0], input_loc[1]+8);
                 refresh();
-                wgetnstr(wnd, line, 255);
+                char instring[256]; i = 0;
+                while (i<255){
+                    single_char = getch(); single_int = (int) single_char;
+                    if (single_int == 127/*backspace*/){
+                        if (i>0){
+                            instring[--i]=' ';
+                            erase();  int j;
+                            mvprintw(input_loc[0], input_loc[1], "INPUT: ");
+                            mvprintw(info_loc[0], info_loc[1], "      OPCODES:\n \t\tdelay\t\ttape\t\tpingpong\tmultitap");
+                            mvprintw(info_loc[0]+2, 0, "\t\tshimmer\t\tcloud \t\ttranspose\tringmod");
+                            mvprintw(info_loc[0]+3, 0, "\t\tcrush\t\treverb\t\tpedal\t\tmoddemod");
+                            mvprintw(info_loc[0]+4, info_loc[1], "                  ");
+                            mvprintw(info_loc[0]+5, info_loc[1], "'delete' to delete");
+                            mvprintw(info_loc[0]+6, info_loc[1], "'clear' to clear");
+                            mvprintw(info_loc[0]+7, info_loc[1], "'push' to push ");
+                            mvprintw(info_loc[0]+8, info_loc[1], "'manual' for manual ");
+                            mvprintw(info_loc[0]+9, info_loc[1], "'preferences' for preferences ");
+                            move(input_loc[0], input_loc[1]+8);
+                            for (j=0; j<i; j++)
+                                mvprintw(input_loc[0], input_loc[1]+8 +j, "%c", line[j]);
+                            refresh();
+                        }
+                        continue;
+                    }
+                    else if (single_char == '\n')
+                        break;
+                    else if (single_char == '\t'){
+                        i = autocomplete(line, i); int j;
+                        for (j=0; j<i; j++)
+                            mvprintw(input_loc[0], input_loc[1]+8 +j, "%c", line[j]);
+                        refresh();
+                    }
+                    else {
+                        line[i++]=single_char;
+                    }
+                            int j;
+                    for (j=0; j<i; j++){
+                        mvprintw(input_loc[0], input_loc[1]+8 +j, "%c", line[j]);
+                    }
+                    refresh();
+
+                }
+               // wgetnstr(wnd, line, 255);
                 COMMAND *usr_in = parse(line, 255);
                 if (usr_in->type == RESEQ && bsound->filter_bank_exists){
                     erase(); noecho();
@@ -626,6 +670,26 @@ struct user_types all_types[NUM_OPTIONS]={
     {MANUAL, "manual", 3, NULL, NULL, NULL},
     {PREFERENCES_MENU, "preferences", 5, NULL, NULL, NULL }
 };
+int autocomplete(char* instring, int length){
+    int i = 0, matching = 0;
+    while (i<NUM_OPTIONS){
+        if (strncmp(instring, all_types[i].name, length)==0)
+            matching++;
+        i++;
+    }
+    if (matching == 1){
+        i = 0;
+        while (i<NUM_OPTIONS){
+            if (strncmp(instring, all_types[i].name, length)==0)
+                break;
+            i++;
+        }
+        memcpy(instring, all_types[i].name, all_types[i].name_length);
+        return all_types[i].name_length;
+    }
+    else
+        return length;
+}
 COMMAND* parse(char* line, int length){
     USR_IN* parsed_in; int i = 0; bool success = 0;
     parsed_in = (USR_IN*)malloc(sizeof(USR_IN)*NUM_ARGUMENTS);
