@@ -304,21 +304,12 @@ int main(int argc, const char * argv[]) {
     usr_in->bsound = bsound; usr_in->cursor = NULL;
     insert_op(bsound, usr_in);
     int j = 0;
-    FILE *fin, *fout;
+    FILE *fout;
     long loc_length = strlen(argv[0]) - 6;
-    char* write_in_loc = (char*)malloc(sizeof(char)* (loc_length + 16));
     char* write_out_loc = (char*)malloc(sizeof(char)* (loc_length + 16));
-    memset(write_in_loc, '\0', loc_length + 16);
-    memcpy(write_in_loc, argv[0], loc_length);
     memset(write_out_loc, '\0', loc_length + 16);
     memcpy(write_out_loc, argv[0], loc_length);
-    strcat(write_in_loc, "audio_in");
     strcat(write_out_loc, "audio_out");
-    fin = fopen(write_in_loc, "wb");
-    if (fin == NULL){
-        fprintf(stderr, "ERROR WRITING TO FILE\n");
-        return 0;
-    }
     fout = fopen(write_out_loc, "wb");
     if (fout == NULL){
         fprintf(stderr, "ERROR WRITING TO OUT FILE\n");

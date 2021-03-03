@@ -31,7 +31,7 @@ char save_slots[4][32]={"esja", "grettisgata", "harpa", "reykjadalur"};
 #define NUM_SAVE_SLOTS 4
 #endif
 COMMAND* parse(char* line, int length);
-int autocomplete(char* instring, int length);
+int autocomplete(char* instring, int length, short option);
 int insert_op(BSOUND* bsound, COMMAND* command);
 char* getname(OP_STACK* item);
 int getlength(OP_STACK* item);
@@ -483,6 +483,7 @@ void* input_handler(void* in){
                 move(input_loc[0], input_loc[1]+8);
                 refresh();
                 char instring[256]; i = 0;
+                int chars_entered = 0, num_tabs;
                 while (i<255){
                     single_char = getch(); single_int = (int) single_char;
                     if (single_int == 127/*backspace*/){
@@ -509,13 +510,27 @@ void* input_handler(void* in){
                     else if (single_char == '\n')
                         break;
                     else if (single_char == '\t'){
-                        i = autocomplete(line, i); int j;
+                        if (chars_entered == 0){
+                            num_tabs = 1;
+                        chars_entered = i;
+                        i = autocomplete(line, i, num_tabs); int j;
                         for (j=0; j<i; j++)
                             mvprintw(input_loc[0], input_loc[1]+8 +j, "%c", line[j]);
                         refresh();
+                        }
+                        else {
+                            int j;
+                            for (j=0; j<i; j++)
+                                mvprintw(input_loc[0], input_loc[1]+8 +j, " ", line[j]);
+                            i = autocomplete(line, chars_entered, ++num_tabs);
+                            for (j=0; j<i; j++)
+                                mvprintw(input_loc[0], input_loc[1]+8 +j, "%c", line[j]);
+                            refresh();
+                        }
                     }
                     else {
                         line[i++]=single_char;
+                        chars_entered = 0;
                     }
                             int j;
                     for (j=0; j<i; j++){
@@ -667,21 +682,25 @@ struct user_types all_types[NUM_OPTIONS]={
     {RESEQ, "reseq", 5, init_reseq, dealloc_reseq, reseq},
     {DELETE, "delete", 6, NULL, NULL, NULL},
     {CLEAR, "clear", 5, NULL, NULL, NULL},
-    {MANUAL, "manual", 3, NULL, NULL, NULL},
-    {PREFERENCES_MENU, "preferences", 5, NULL, NULL, NULL }
+    {MANUAL, "manual", 6, NULL, NULL, NULL},
+    {PREFERENCES_MENU, "preferences", 11, NULL, NULL, NULL }
 };
-int autocomplete(char* instring, int length){
+int autocomplete(char* instring, int length, short option){
     int i = 0, matching = 0;
     while (i<NUM_OPTIONS){
         if (strncmp(instring, all_types[i].name, length)==0)
             matching++;
         i++;
     }
-    if (matching == 1){
-        i = 0;
+    if (matching != 0){
+        if (option>matching)
+            option = option%matching + 1;
+        i = 0; int j = 0;
         while (i<NUM_OPTIONS){
-            if (strncmp(instring, all_types[i].name, length)==0)
-                break;
+            if (strncmp(instring, all_types[i].name, length)==0){
+                if (++j==option)
+                    break;
+            }
             i++;
         }
         memcpy(instring, all_types[i].name, all_types[i].name_length);
