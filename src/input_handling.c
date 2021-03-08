@@ -30,19 +30,19 @@ char save_slots[4][32]={"esja", "grettisgata", "harpa", "reykjadalur"};
 #ifndef NUM_SAVE_SLOTS
 #define NUM_SAVE_SLOTS 4
 #endif
-COMMAND* parse(char* line, int length);
-int autocomplete(char* instring, int length, short option);
-int insert_op(BSOUND* bsound, COMMAND* command);
+COMMAND* parse(char* line, int32_t length);
+int32_t autocomplete(char* instring, int32_t length, int16_t option);
+int32_t insert_op(BSOUND* bsound, COMMAND* command);
 char* getname(OP_STACK* item);
-int getlength(OP_STACK* item);
-int display_stack(BSOUND* bsound, int max_x, int max_y);
+int32_t getlength(OP_STACK* item);
+int32_t display_stack(BSOUND* bsound, int32_t max_x, int32_t max_y);
 void delete_item(BSOUND* bsound, OP_STACK* cursor);
-OP_STACK* load_st(BSOUND* bsound, short* print_loc);
-void save_st(BSOUND* bsound, short* print_loc);
-void display_preferences_menu(BSOUND* bsound, short* print_loc);
+OP_STACK* load_st(BSOUND* bsound, int16_t* print_loc);
+void save_st(BSOUND* bsound, int16_t* print_loc);
+void display_preferences_menu(BSOUND* bsound, int16_t* print_loc);
 
-short which_attr_is_skip(int attr_num){
-    short table[14]={5, //DELAY
+int16_t which_attr_is_skip(int32_t attr_num){
+    int16_t table[14]={5, //DELAY
         5, //PPDEL
         5, //TAPE
         5, //MULTITAP
@@ -63,11 +63,11 @@ short which_attr_is_skip(int attr_num){
 struct attr_parse {
     USR_IN type;
     char names[NUM_ATTRS][64];
-    short min_val[NUM_ATTRS];
-    short max_val[NUM_ATTRS];
-    short default_val[NUM_ATTRS];
+    int16_t min_val[NUM_ATTRS];
+    int16_t max_val[NUM_ATTRS];
+    int16_t default_val[NUM_ATTRS];
     char display_type[NUM_ATTRS]; //s(hort) f(requency) i(nterval) t(ime)? d(B)
-    short num_attr;
+    int16_t num_attr;
 };
 ///TODO: add messages for delay and crush; print messages
 char creation_messages[NUM_OPTIONS][512]={
@@ -158,9 +158,9 @@ struct attr_parse attr_types[NUM_OPTIONS]={
         {10, 100,  50,  1, 0,       0, 100},
         "ssfsdss", 5}
 };
-void display_attr(short *attr, int index, USR_IN type, int *display_loc){
+void display_attr(int16_t *attr, int32_t index, USR_IN type, int32_t *display_loc){
     float display_freq, my_base = pow(20000.0, 0.01);
-    int display_index, i;
+    int32_t display_index, i;
     float interval_convert_tab[256];
     char interval_to_text_tab[32][32]={"-2 oct", "-1.5 oct", "-1 oct", "- min 7", "- min 6", "- tri", "- 5th", "- min 3", "- maj 2", "- min 2", "uni", "maj 2", "maj 3", "tri", "5th", "nat 6", "nat 7", "maj 7", "+2 oct", "+2.5 oct"};
     interval_convert_tab[0]=0.25f; interval_convert_tab[1]=0.375f;
@@ -203,10 +203,10 @@ void* input_handler(void* in){
     WINDOW* wnd = bsound->wnd; char* line; char single_char; char name[256];
     line = (char*) calloc(sizeof(char)*256, 1);
     OP_STACK* cursor = (OP_STACK*) malloc(sizeof(OP_STACK));
-    int max_y, max_x, single_int, i, offset = 0;
+    int32_t max_y, max_x, single_int, i, offset = 0;
     bool refresh_flag = 0, repeat_flag = 0,  load = 0, delete_flag = 0;
-    short num_attr = 0; short page;
-    short input_loc[2], info_loc[2];
+    int16_t num_attr = 0; int16_t page;
+    int16_t input_loc[2], info_loc[2];
     if (!wnd)
     wnd = initscr();
     keypad(wnd, TRUE);
@@ -298,7 +298,7 @@ void* input_handler(void* in){
                     mvprintw(info_loc[0]+1, info_loc[1], "for navigation use A and D");
                     mvprintw(info_loc[0]+2, info_loc[1], "for editing use arrow keys ");
                     mvprintw(info_loc[0]+4, info_loc[1], "to quit type 'q'");
-                    short x_spacing = max_x / 12;
+                    int16_t x_spacing = max_x / 12;
                     for (i=0; i<10; i++){
                         mvprintw(max_y-1, (i+1)*x_spacing , "band %d", i);
                     }
@@ -344,7 +344,7 @@ void* input_handler(void* in){
                 move(max_y -1, info_loc[1]);
                 refresh();
                 nodelay(wnd, 1);
-                short counter = 0;
+                int16_t counter = 0;
                 single_char = 'b';
                 while (bsound->record_flag && single_char != ' '){
                     usleep(30000); single_char = getch();
@@ -405,7 +405,7 @@ void* input_handler(void* in){
                     if (cursor->attr[num_attr]>attr_types[cursor->type].max_val[num_attr])
                         cursor->attr[num_attr] = attr_types[cursor->type].max_val[num_attr];
                     mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
-                    int display_loc[2] = {cursor->y-3, cursor->x+offset};
+                    int32_t display_loc[2] = {cursor->y-3, cursor->x+offset};
                     display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                     repeat_flag = 1;
                     move(cursor->y, cursor->x +offset);
@@ -416,7 +416,7 @@ void* input_handler(void* in){
                     if (cursor->attr[num_attr]<attr_types[cursor->type].min_val[num_attr])
                         cursor->attr[num_attr] = attr_types[cursor->type].min_val[num_attr];
                     mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
-                    int display_loc[2] = {cursor->y-3, cursor->x+offset};
+                    int32_t display_loc[2] = {cursor->y-3, cursor->x+offset};
                     display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                     repeat_flag = 1;
                     move(cursor->y, cursor->x +offset);
@@ -427,7 +427,7 @@ void* input_handler(void* in){
                 if (cursor->attr[num_attr]<attr_types[cursor->type].max_val[num_attr])
                     cursor->attr[num_attr]++;
                 mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
-                int display_loc[2] = {cursor->y-3, cursor->x+offset};
+                int32_t display_loc[2] = {cursor->y-3, cursor->x+offset};
                 display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                 repeat_flag = 1;
                 move(cursor->y, cursor->x +offset);
@@ -437,7 +437,7 @@ void* input_handler(void* in){
                 if (cursor->attr[num_attr]>attr_types[cursor->type].min_val[num_attr])
                     cursor->attr[num_attr]--;
                 mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
-                int display_loc[2] = {cursor->y-3, cursor->x+offset};
+                int32_t display_loc[2] = {cursor->y-3, cursor->x+offset};
                 display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                 repeat_flag = 1;
                 move(cursor->y, cursor->x +offset);
@@ -448,7 +448,7 @@ void* input_handler(void* in){
                     num_attr++;
                 mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
                 //mvprintw(cursor->y - 3, cursor->x  +offset, "  %d  ", cursor->attr[num_attr]);
-                int display_loc[2] = {cursor->y-3, cursor->x+offset};
+                int32_t display_loc[2] = {cursor->y-3, cursor->x+offset};
                 display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                 move(cursor->y, cursor->x +offset); repeat_flag = 1;
                 refresh();
@@ -458,7 +458,7 @@ void* input_handler(void* in){
                     num_attr--;
                 mvprintw(cursor->y-5, cursor->x -2 +offset, "%s      ", attr_types[cursor->type].names[num_attr]);
                 //mvprintw(cursor->y - 3, cursor->x+offset , "  %d  ", cursor->attr[num_attr]);
-                int display_loc[2] = {cursor->y-3, cursor->x+offset};
+                int32_t display_loc[2] = {cursor->y-3, cursor->x+offset};
                 display_attr(cursor->attr, num_attr, cursor->type, display_loc);
                 move(cursor->y, cursor->x +offset); repeat_flag = 1;
                 refresh();
@@ -483,13 +483,13 @@ void* input_handler(void* in){
                 move(input_loc[0], input_loc[1]+8);
                 refresh();
                 char instring[256]; i = 0;
-                int chars_entered = 0, num_tabs;
+                int32_t chars_entered = 0, num_tabs;
                 while (i<255){
-                    single_char = getch(); single_int = (int) single_char;
+                    single_char = getch(); single_int = (int32_t) single_char;
                     if (single_int == 127/*backspace*/){
                         if (i>0){
                             instring[--i]=' ';
-                            erase();  int j;
+                            erase();  int32_t j;
                             mvprintw(input_loc[0], input_loc[1], "INPUT: ");
                             mvprintw(info_loc[0], info_loc[1], "      OPCODES:\n \t\tdelay\t\ttape\t\tpingpong\tmultitap");
                             mvprintw(info_loc[0]+2, 0, "\t\tshimmer\t\tcloud \t\ttranspose\tringmod");
@@ -513,13 +513,13 @@ void* input_handler(void* in){
                         if (chars_entered == 0){
                             num_tabs = 1;
                         chars_entered = i;
-                        i = autocomplete(line, i, num_tabs); int j;
+                        i = autocomplete(line, i, num_tabs); int32_t j;
                         for (j=0; j<i; j++)
                             mvprintw(input_loc[0], input_loc[1]+8 +j, "%c", line[j]);
                         refresh();
                         }
                         else {
-                            int j;
+                            int32_t j;
                             for (j=0; j<i; j++)
                                 mvprintw(input_loc[0], input_loc[1]+8 +j, " ", line[j]);
                             i = autocomplete(line, chars_entered, ++num_tabs);
@@ -532,7 +532,7 @@ void* input_handler(void* in){
                         line[i++]=single_char;
                         chars_entered = 0;
                     }
-                            int j;
+                            int32_t j;
                     for (j=0; j<i; j++){
                         mvprintw(input_loc[0], input_loc[1]+8 +j, "%c", line[j]);
                     }
@@ -573,7 +573,7 @@ void* input_handler(void* in){
                     refresh_flag = 1; continue;
               } // this won't work on linux, so maybe conditionally compile...
                 else if (usr_in->type == MANUAL){
-                    long loc_length = strlen(bsound->programm_loc)-6;
+                    int64_t loc_length = strlen(bsound->programm_loc)-6;
                     char* command = (char*)malloc(sizeof(char)*(loc_length+40));
                     char* temp_loc = (char*)malloc(sizeof(char)*loc_length+10);
                     memset(command, '\0', loc_length +40); memset(temp_loc, '\0', loc_length+10);
@@ -660,10 +660,10 @@ void error_message(const char* message, BSOUND* bsound){
 struct user_types{
     USR_IN type;
     char name[256];
-    int name_length;
+    int32_t name_length;
     void* (*init_opcode)(BSOUND* bsound, USR_IN type);
     void (*dealloc_opcode)(BSOUND* bsound, void* data);
-    void (*opcode)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
+    void (*opcode)(float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
 };
 struct user_types all_types[NUM_OPTIONS]={
     {DELAY, "delay", 5, init_delay, dealloc_delay, delay},
@@ -685,8 +685,8 @@ struct user_types all_types[NUM_OPTIONS]={
     {MANUAL, "manual", 6, NULL, NULL, NULL},
     {PREFERENCES_MENU, "preferences", 11, NULL, NULL, NULL }
 };
-int autocomplete(char* instring, int length, short option){
-    int i = 0, matching = 0;
+int32_t autocomplete(char* instring, int32_t length, int16_t option){
+    int32_t i = 0, matching = 0;
     while (i<NUM_OPTIONS){
         if (strncmp(instring, all_types[i].name, length)==0)
             matching++;
@@ -695,7 +695,7 @@ int autocomplete(char* instring, int length, short option){
     if (matching != 0){
         if (option>matching)
             option = option%matching + 1;
-        i = 0; int j = 0;
+        i = 0; int32_t j = 0;
         while (i<NUM_OPTIONS){
             if (strncmp(instring, all_types[i].name, length)==0){
                 if (++j==option)
@@ -709,8 +709,8 @@ int autocomplete(char* instring, int length, short option){
     else
         return length;
 }
-COMMAND* parse(char* line, int length){
-    USR_IN* parsed_in; int i = 0; bool success = 0;
+COMMAND* parse(char* line, int32_t length){
+    USR_IN* parsed_in; int32_t i = 0; bool success = 0;
     parsed_in = (USR_IN*)malloc(sizeof(USR_IN)*NUM_ARGUMENTS);
     COMMAND* out_command = (COMMAND*)malloc(sizeof(COMMAND));
     out_command->push_flag = 0;
@@ -738,11 +738,11 @@ COMMAND* parse(char* line, int length){
 char* getname(OP_STACK* item){
     return all_types[item->type].name;
 }
-int getlength(OP_STACK* item){
+int32_t getlength(OP_STACK* item){
     return all_types[item->type].name_length;
 }
-int display_stack(BSOUND* bsound, int max_x, int max_y){
-    OP_STACK* current = bsound->head; int i = 0; int offset = 0;
+int32_t display_stack(BSOUND* bsound, int32_t max_x, int32_t max_y){
+    OP_STACK* current = bsound->head; int32_t i = 0; int32_t offset = 0;
     while (i<bsound->num_ops){
         offset+=getlength(current) +4;
         current = current->next_op; i++;
@@ -762,13 +762,13 @@ int display_stack(BSOUND* bsound, int max_x, int max_y){
     mvprintw(current->y, current->x +offset + getlength(current) +4, "OUT");
     return offset;
 }
-int insert_op(BSOUND* bsound, COMMAND* command){
+int32_t insert_op(BSOUND* bsound, COMMAND* command){
     OP_STACK* new = (OP_STACK*)malloc(sizeof(OP_STACK));
     new->dealloc = command->dealloc;
     new->func = command->operator;
     new->func_st = command->init(bsound, command->type);
-    new->attr = (short*)calloc(sizeof(short)*32, 32);
-    int i = 0;
+    new->attr = (int16_t*)calloc(sizeof(int16_t)*32, 32);
+    int32_t i = 0;
     for (i=0; i<=attr_types[command->type].num_attr;i++){
         new->attr[i]=attr_types[command->type].default_val[i];
     }
@@ -834,14 +834,14 @@ void delete_item(BSOUND* bsound, OP_STACK* cursor){
         //cursor = bsound->head;
     }
 }
-OP_STACK* load_st(BSOUND* bsound, short* print_loc){
+OP_STACK* load_st(BSOUND* bsound, int16_t* print_loc){
     erase();
     COMMAND* command = (COMMAND* )malloc(sizeof(COMMAND));
     OP_STACK* cursor = (OP_STACK*) malloc(sizeof(OP_STACK));
-    long loc_length = strlen(bsound->programm_loc)-6;
+    int64_t loc_length = strlen(bsound->programm_loc)-6;
     char* save_loc = (char*) malloc(sizeof(char)*(20+loc_length));
     char* temp_loc = (char*) malloc(sizeof(char)*(20+loc_length));
-    char save_slot[10], line[128], single_char; int type, i, single_int;
+    char save_slot[10], line[128], single_char; int32_t type, i, single_int;
     FILE *ftemp;
     memset(save_loc, '\0', loc_length +20);
     memset(save_slot, '\0', 10);
@@ -917,7 +917,7 @@ OP_STACK* load_st(BSOUND* bsound, short* print_loc){
                 cursor->next_op = NULL;
             command->cursor = cursor;
             if (insert_op(bsound, command)==0){
-                OP_STACK* item = bsound->head; int scan_val, j=0;
+                OP_STACK* item = bsound->head; int32_t scan_val, j=0;
                 while (item->next_op)
                     item=item->next_op;
                 i = 0;
@@ -946,12 +946,12 @@ OP_STACK* load_st(BSOUND* bsound, short* print_loc){
     fclose(ftemp);
     return cursor;
 }
-void save_st(BSOUND* bsound, short* print_loc){
+void save_st(BSOUND* bsound, int16_t* print_loc){
     erase();
-    long loc_length = strlen(bsound->programm_loc)-6;
+    int64_t loc_length = strlen(bsound->programm_loc)-6;
     char* save_loc = (char*) malloc(sizeof(char)*(20+loc_length));
     char* temp_loc = (char*) malloc(sizeof(char)*(20+loc_length));
-    char save_slot[10], line[128], single_char; int i, single_int;
+    char save_slot[10], line[128], single_char; int32_t i, single_int;
     FILE *ftemp;
     time_t current_time = time(NULL);
     struct tm *tm = localtime(&current_time);
@@ -1011,7 +1011,7 @@ void save_st(BSOUND* bsound, short* print_loc){
         strftime(line, 128, "%c", tm);
         fprintf(ftemp, "%s\n", line);
         while(bsound->num_ops){
-            int i;
+            int32_t i;
             fprintf(ftemp, "%d", bsound->head->type);
             for (i=0; i<=attr_types[bsound->head->type].num_attr; i++)
             fprintf(ftemp, " %d", bsound->head->attr[i]);
@@ -1023,7 +1023,7 @@ void save_st(BSOUND* bsound, short* print_loc){
 cleanup:
     free(save_loc); free (temp_loc);
 }
-void print_preferences_menu(BSOUND* bsound, short* print_loc){
+void print_preferences_menu(BSOUND* bsound, int16_t* print_loc){
     erase();
     if (bsound->mono_input)
     mvprintw(print_loc[0], print_loc[1], "MONO AUDIO: ENABLED ");
@@ -1034,8 +1034,8 @@ void print_preferences_menu(BSOUND* bsound, short* print_loc){
     mvprintw(print_loc[0]+4, print_loc[1], "type 'q' to go back");
     refresh();
 }
-void display_preferences_menu(BSOUND* bsound, short* print_loc){
-    char single_char; int single_int, option_selected, max_options = 1;
+void display_preferences_menu(BSOUND* bsound, int16_t* print_loc){
+    char single_char; int32_t single_int, option_selected, max_options = 1;
     print_preferences_menu(bsound, print_loc);
     move(print_loc[0], print_loc[1] - 1); option_selected = 0; refresh();
     while (1){

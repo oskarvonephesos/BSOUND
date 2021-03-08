@@ -57,7 +57,7 @@ void test_input(PaStream* handle, float* samplein, BSOUND* bsound){
     int i, j;
     int frameCount = bsound->bufsize * bsound->in_chans;
     MYFLT incr = MY_2_PI/bsound->bufsize;
-    short numChans = bsound->in_chans;
+    int16_t numChans = bsound->in_chans;
     for (j=0; j<numChans; j++){
         int k = 0;
         for (i=j; i<frameCount;){
@@ -68,10 +68,10 @@ void test_input(PaStream* handle, float* samplein, BSOUND* bsound){
     }
 }
 #define TAB_LENGTH 512
-void write_sine(float* samplein, BSOUND* bsound, long counter, FILE* fp, float* sin_tab){
+void write_sine(float* samplein, BSOUND* bsound, int64_t counter, FILE* fp, float* sin_tab){
     int i, ii = 0, my_counter, index, j;
-    long bufsize = bsound->bufsize * bsound->num_chans;
-    short num_chans = bsound->num_chans;
+    int64_t bufsize = bsound->bufsize * bsound->num_chans;
+    int16_t num_chans = bsound->num_chans;
     my_counter  = 4;//(counter/5)%20 + 1;
     for (j=0; j<num_chans; j++){
         ii = 0;
@@ -213,8 +213,8 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
         }
     }
     else{
-        short attr_num;
-        long sampcount = bsound->bufsize * bsound->num_chans;
+        int16_t attr_num;
+        int64_t sampcount = bsound->bufsize * bsound->num_chans;
         for (i=0; i<sampcount; i++){
             temp1[i]=input[i];
             output[i]=0.0f;
@@ -305,7 +305,7 @@ int main(int argc, const char * argv[]) {
     insert_op(bsound, usr_in);
     int j = 0;
     FILE *fout;
-    long loc_length = strlen(argv[0]) - 6;
+    int64_t loc_length = strlen(argv[0]) - 6;
     char* write_out_loc = (char*)malloc(sizeof(char)* (loc_length + 16));
     memset(write_out_loc, '\0', loc_length + 16);
     memcpy(write_out_loc, argv[0], loc_length);

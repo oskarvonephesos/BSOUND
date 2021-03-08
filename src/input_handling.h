@@ -25,9 +25,9 @@
 #define input_handling_h
 
 void* input_handler(void* id );
-short which_attr_is_skip(int attr_num);
+int16_t which_attr_is_skip(int32_t attr_num);
 void error_message(const char* message, BSOUND* bsound);
 
-COMMAND* parse(char* line, int length);
-int insert_op(BSOUND* bsound, COMMAND* command);
+COMMAND* parse(char* line, int32_t length);
+int32_t insert_op(BSOUND* bsound, COMMAND* command);
 #endif /* input_handling_h */

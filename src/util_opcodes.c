@@ -19,8 +19,8 @@
     **/
 #include "util_opcodes.h"
 float rms(float* input, BSOUND* bsound ){
-    long bufsize = bsound->bufsize * bsound->num_chans;
-    int i;
+    int64_t bufsize = bsound->bufsize * bsound->num_chans;
+    int32_t i;
     double running_count = 0.0;
     for (i=0; i< bufsize; i++){
         running_count += (double) (input[i]*input[i]);
@@ -30,8 +30,8 @@ float rms(float* input, BSOUND* bsound ){
     return (float) running_count;
 }
 double dc_offset(float* input, BSOUND* bsound){
-    long bufsize = bsound->bufsize * bsound->num_chans;
-    int i;
+    int64_t bufsize = bsound->bufsize * bsound->num_chans;
+    int32_t i;
     double running_count = 0.0;
     for (i=0; i<bufsize; i++){
         running_count += (double) input[i];
@@ -39,13 +39,13 @@ double dc_offset(float* input, BSOUND* bsound){
     running_count /= bufsize;
     return running_count;
 }
-int rand_int(int min, int max){
-    int return_val = rand()%(abs(max-min));
+int32_t rand_int(int32_t min, int32_t max){
+    int32_t return_val = rand()%(abs(max-min));
     return_val += min;
     return return_val;
 }
 MYFLT rand_float(MYFLT min, MYFLT max){
-    int large_int= 4096<<5;
+    int32_t large_int= 4096<<5;
     double rand_db = (double) (rand()%large_int);
     rand_db = rand_db / (double) large_int;
     rand_db *=(max-min);
@@ -59,8 +59,8 @@ MYFLT amp(MYFLT x_dB){
     return pow(10.0, x_dB/20.0);
 }
 //this utility handles mono_input
-void copylefttoright(float* input, BSOUND* bsound, int inchannels){
-    int i, frameCount = bsound->bufsize*bsound->num_chans, j, numchans = bsound->num_chans, k;
+void copylefttoright(float* input, BSOUND* bsound, int32_t inchannels){
+    int32_t i, frameCount = bsound->bufsize*bsound->num_chans, j, numchans = bsound->num_chans, k;
     if (bsound->in_out_chanmatch){
     for (j=0; j<numchans-inchannels; j++){
         k = (j + inchannels)%numchans;
@@ -72,7 +72,7 @@ void copylefttoright(float* input, BSOUND* bsound, int inchannels){
     }
     }
     else {
-        short inchans = bsound->in_chans;
+        int16_t inchans = bsound->in_chans;
         frameCount = bsound->bufsize*inchans;
         k=bsound->bufsize*bsound->num_chans;
         for (i=0; i<frameCount;){
@@ -92,9 +92,9 @@ void copylefttoright(float* input, BSOUND* bsound, int inchannels){
     }
 }
 void match_outputchannels(float* output, BSOUND* bsound){
-      short numChans = bsound->num_chans;
-      int i, frameCount = bsound->bufsize * bsound->num_chans;
-      int k = frameCount, j, outChans = bsound->out_chans;
+      int16_t numChans = bsound->num_chans;
+      int32_t i, frameCount = bsound->bufsize * bsound->num_chans;
+      int32_t k = frameCount, j, outChans = bsound->out_chans;
       for (j=0; j<outChans; j++){
             k = frameCount + j;
             for (i=j; i<frameCount;){

@@ -53,20 +53,20 @@ typedef enum {
 }USR_IN;
 #endif
 typedef struct _BSOUND{
-    int num_ops;
-    int sample_rate;
-    int default_buffer_length;
-    short num_chans;
-    int bufsize;
-    int out_of_range;
+    int32_t num_ops;
+    int32_t sample_rate;
+    int32_t default_buffer_length;
+    int16_t num_chans;
+    int32_t bufsize;
+    int32_t out_of_range;
     MYFLT hi_damp;
     struct _OP_STACK* head;
     bool quit_flag;
     bool modify_flag;
     const char* programm_loc;
     bool mono_input;
-    short in_chans;
-    short out_chans;
+    int16_t in_chans;
+    int16_t out_chans;
     bool in_out_chanmatch;
     bool pause_flag;
     bool bypass_flag;
@@ -78,7 +78,7 @@ typedef struct _BSOUND{
     } BSOUND;
 typedef struct _OP_STACK{
     //operator
-    void (*func)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
+    void (*func)(float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
     //dealloc function
     void (*dealloc)(BSOUND* bsound, void* data);
     //function data
@@ -87,13 +87,13 @@ typedef struct _OP_STACK{
     struct _OP_STACK *previous_op;
     //quick access to original type
     USR_IN type;
-    int y;
-    int x;
-    short* attr;
+    int32_t y;
+    int32_t x;
+    int16_t* attr;
 }OP_STACK;
 typedef struct {
     OP_STACK** head;
-    void (*operator)(float* input, float* output, void* data, const short* attr, const BSOUND* bsound);
+    void (*operator)(float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
     void* (*init)(BSOUND* bsound,  USR_IN type);
     void (*dealloc)(BSOUND* bsound, void* data);
     OP_STACK* cursor;
