@@ -1347,6 +1347,7 @@ void* init_bbd(BSOUND* bsound, USR_IN type){
     data->prv_y0_hipass = (MYFLT*)calloc(sizeof(MYFLT)*bsound->num_chans, 1);
     data->in_read = (bsound->bufsize -2)-((1.0/data->read_factor)*((int)bsound->bufsize*data->read_factor));
     data->samp_read = (bsound->bufsize) * 3;
+    data->aux = alloc_rngbuf(bsound, bsound->bufsize * 2);
     return (void*)data;
 }
 void dealloc_bbd(BSOUND* bsound, void* data){
@@ -1374,6 +1375,8 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
         }
     }
     MYFLT read_factor =  1.0f / data->read_factor;
+    MYFLT* aux;
+    int auxlength = data->aux->length;
     MYFLT* in_tab;
     MYFLT** samp_reduced = data->samp_reduced;
     int x0, x1, x2, x3;
@@ -1393,10 +1396,14 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
     frameCount = bsound->bufsize;
     for (j=0; j<num_chans; j++){
         jj = j;
+        k = data->aux->index - bsound->bufsize;
+        if (k<0){k+=auxlength;}
+        aux = data->aux->value[j];
         in_tab = data->in_buffer[j];
         ii = data->in_index;
         for (i= 0; i< frameCount; i++){
-           in_tab[ii++] = input[jj];
+           in_tab[ii++] = input[jj] + feedback*aux[k++];
+           if (k>=auxlength){k=0;}
             if (ii>=tab_length){ii=0;}
             jj += num_chans;
         }
@@ -1448,7 +1455,7 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
             y0 = samp;
             f1 = in_tab[k];
             f1 += data->in_buffer[(j+1)%num_chans][k++]; if (k>tab_length){k=0;}
-            samp_reduced[j][ii++] = samp + f1*feedback;
+            samp_reduced[j][ii++] = samp; //+ f1*feedback;
 
             if (ii>=tab_length){ii=0;}
         }
@@ -1475,6 +1482,8 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
         read_factor = (MYFLT) frameCount/bsound->bufsize;
         frameCount = bsound->bufsize;
         ii = j;
+        k = data->aux->index;
+        aux = data->aux->value[j];
         MYFLT y1 = data->prv_y0_hipass[j], damp_factor = bsound->hi_damp;
         for (i= 0; i<frameCount ; i++){
             index += read_factor;
@@ -1499,12 +1508,15 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
             samp= f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
             output[ii]=samp;
             output[ii]=(y1+output[ii])*damp_factor;
+            aux[k++] = output[ii];
+            if (k>= auxlength){k = 0;}
             y1 = output[ii]-samp;
             ii += num_chans;
         }
         data->prv_y0_hipass[j]=y1;
     }
     data->samp_read = index;
+    data->aux->index = k;
 
 }
 void* init_reseq(BSOUND* bsound, USR_IN type){

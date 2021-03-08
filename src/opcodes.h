@@ -125,6 +125,7 @@ typedef struct {
     MYFLT damp_factor;
 } CRUSH_OPS;
 typedef struct {
+    RNGBUF* aux;
     MYFLT** samp_reduced;
     MYFLT samp_index;
     MYFLT samp_read;
