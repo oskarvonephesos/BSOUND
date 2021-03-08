@@ -30,6 +30,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include "data_types.h"
 #include "programm_state.h"
 #include "opcodes.h"
@@ -61,19 +62,39 @@ typedef struct {
     int recordend;
     int recordzero;
     int readhead;
+    float* recordbuf;
 }RECORD_INFO;
 RECORD_INFO* init_recordinfo(BSOUND* bsound){
 RECORD_INFO* r = (RECORD_INFO*) malloc(sizeof(RECORD_INFO));
     r->bypass_active = 0;
     r->record_active = 0;
-    r->recordbuflength =300000;//bsound->sample_rate*4* bsound->num_chans;
+    r->recordbuflength =150000*bsound->num_chans;//bsound->sample_rate*4* bsound->num_chans;
     r->readhead = 0;
     r->crosses_zero = false;
+    r->recordbuf = (float*) calloc(sizeof(float)*r->recordbuflength, 1);
     return r;
 }
-void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bsound, RECORD_INFO* r){
+void cross_fade_buffer(BSOUND* bsound, RECORD_INFO* r){
+      int32_t crossfade_length = 5000; int32_t crossfade_start, i, j, k;
+      int32_t recordbuflength = r->recordbuflength, rzero = r->recordzero;
+      MYFLT incr = 1.0/crossfade_length, amount = 0.0;
+      float* recordbuf = r->recordbuf;
+      crossfade_start = r->recordend - 5000;
+      if (crossfade_start < 0)
+            crossfade_start += r->recordbuflength;
+      j = crossfade_start;
+      k = r->recordstart;
+      for (i=0; i<crossfade_length; i++){
+            recordbuf[j] = amount * recordbuf[k] + (1.0-amount)* recordbuf[j];
+            amount += incr;
+            if (++j>recordbuflength){j = rzero;}
+            if (++k>recordbuflength){k = rzero;}
+      }
+}
+void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r){
     PaError  err = paNoError;
     int i, recordhead = r->readhead;
+    float* record_buf = r->recordbuf;
     //audio in
     err = Pa_ReadStream(handle, input, bsound->bufsize);
     if (err!= paNoError){
@@ -112,6 +133,7 @@ void write_input(float* input, PaStream* handle,  float* record_buf, BSOUND* bso
                 r->recordzero = r->recordstart;
             //make sure not to call again || playbackflag is set in input_handling
             r->record_active = 0;
+            cross_fade_buffer(bsound, r);
         recordhead = r->recordstart;
         }
     if (bsound->bypass_flag){
@@ -315,12 +337,11 @@ int main(int argc, const char * argv[]) {
                 sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
                 temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                RECORD_INFO* myrecordinfo = init_recordinfo(bsound);
-                recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
+                RECORD_INFO* myrecordinfo = init_recordinfo(bsound);recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
                 pthread_create(&input_handling, NULL, *(input_handler), (void *)bsound);
                 while(1){
                     OutOfRangeFlag = 0;
-                    write_input(samplein, handle, recordbuf, bsound, myrecordinfo);
+                    write_input(samplein, handle, bsound, myrecordinfo);
                     apply_fx(samplein, sampleout, head, bsound, temp1, temp2);
                     for (i=0; i<bsound->bufsize*bsound->num_chans; i++){
                         if (sampleout[i]>1.0f){

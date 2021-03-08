@@ -1030,12 +1030,16 @@ void print_preferences_menu(BSOUND* bsound, short* print_loc){
     else
     mvprintw(print_loc[0], print_loc[1], "MONO AUDIO: DISABLED ");
     mvprintw(print_loc[0]+1, print_loc[1], "BUFFER SIZE: %d", bsound->bufsize);
-    mvprintw(print_loc[0]+3, print_loc[1], "CHOOSE AND HIT ENTER TO TOGGLE/CYCLE THROUGH SETTINGS");
-    mvprintw(print_loc[0]+4, print_loc[1], "type 'q' to go back");
+    if (bsound->crossfade_looping)
+    mvprintw(print_loc[0]+2, print_loc[1], "CROSS FADE LOOP BOUNDARIES: ENABLED  ");
+    else
+    mvprintw(print_loc[0]+2, print_loc[1], "CROSS FADE LOOP BOUNDARIES: DISABLED ");
+    mvprintw(print_loc[0]+4, print_loc[1], "CHOOSE AND HIT ENTER TO TOGGLE/CYCLE THROUGH SETTINGS");
+    mvprintw(print_loc[0]+5, print_loc[1], "type 'q' to go back");
     refresh();
 }
 void display_preferences_menu(BSOUND* bsound, short* print_loc){
-    char single_char; int single_int, option_selected, max_options = 1;
+    char single_char; int single_int, option_selected, max_options = 2;
     print_preferences_menu(bsound, print_loc);
     move(print_loc[0], print_loc[1] - 1); option_selected = 0; refresh();
     while (1){
@@ -1065,13 +1069,29 @@ void display_preferences_menu(BSOUND* bsound, short* print_loc){
                     erase();
                     mvprintw(print_loc[0], print_loc[1], "CHANGING BUFFER SIZE");
                     bsound->pause_flag = 1;
-                    if (bsound->bufsize < 2048)
+                    if (bsound->bufsize < 512)
                         bsound->bufsize *= 2;
                     else
                         bsound->bufsize = 64;
                     sleep(1);
                     bsound->pause_flag = 0;
                     print_preferences_menu(bsound, print_loc);
+                    move(print_loc[0] + option_selected, print_loc[1]-1);
+                    refresh();
+                    break;
+               case 2:
+                    bsound->crossfade_looping = !(bsound->crossfade_looping);
+                    if (bsound->crossfade_looping){
+                    erase();
+                    mvprintw(print_loc[0], print_loc[1], "LOOP CROSSFADING ENABLED");
+                    mvprintw(print_loc[0]+1, print_loc[1], "BSOUND WILL APPLY CROSSFADING TO THE NEXT LOOP YOU RECORD");
+                    mvprintw(print_loc[0]+3, print_loc[1], "PRESS ANY KEY TO CONTINUE");
+                    getch();
+                    print_preferences_menu(bsound, print_loc);
+                    }
+                    else{
+                          mvprintw(print_loc[0]+2, print_loc[1], "CROSS FADE LOOP BOUNDARIES: DISABLED ");
+                    }
                     move(print_loc[0] + option_selected, print_loc[1]-1);
                     refresh();
                     break;

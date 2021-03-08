@@ -72,6 +72,7 @@ typedef struct _BSOUND{
     bool bypass_flag;
     bool record_flag;
     bool playback_flag;
+    bool crossfade_looping;
     WINDOW* wnd;
     bool filter_bank_active;
     bool filter_bank_exists;
