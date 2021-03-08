@@ -1348,32 +1348,29 @@ void* init_bbd(BSOUND* bsound, USR_IN type){
     data->in_read = (bsound->bufsize -2)-((1.0/data->read_factor)*((int)bsound->bufsize*data->read_factor));
     data->samp_read = (bsound->bufsize) * 3;
     data->aux = alloc_rngbuf(bsound, bsound->bufsize * 2);
+    data->mod_tab_length = 1200; //magic numbers FTW
+    data->modulator = (MYFLT *)malloc(sizeof(MYFLT)*data->mod_tab_length);
+    MYFLT incr = MY_2_PI/data->mod_tab_length;
+    for (i=0; i<data->mod_tab_length; i++){
+     data->modulator[i]=sin(i*incr);
+            }
     return (void*)data;
 }
 void dealloc_bbd(BSOUND* bsound, void* data){
     BBD_OPS* data_st = (BBD_OPS*) data;
     free(data_st->samp_reduced);
     free(data_st->prv_y0);
+    free(data_st->modulator);
+    dealloc_rngbuf(data_st->aux, bsound);
     free(data_st);
 }
 void bbd(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
     BBD_OPS* data = (BBD_OPS*) data_st;
-    //if we're not interpolating quantize
-    if (attr[3])
-        data->read_factor = attr[0]/100.0 ;
-    else{
-        data->read_factor = attr[0]/100.0 ;
-        if (data->read_factor<=1.0f)
-        data->read_factor = 1.0/((int)(1.0/data->read_factor));
-        else {
-            if (data->read_factor<2.0)
-                data->read_factor = 2.0;
-            else if (data->read_factor<3.0)
-                data->read_factor = 3.0;
-            else
-                data->read_factor = 4.0;
-        }
-    }
+    MYFLT mod_amount = (MYFLT)attr[3]/500.0;
+    data->mod_index+= attr[4]; if (data->mod_index>=data->mod_tab_length){data->mod_index -= data->mod_tab_length;}
+    mod_amount *= data->modulator[data->mod_index];
+    data->read_factor = attr[0]/100.0 ;
+    data->read_factor += mod_amount;
     MYFLT read_factor =  1.0f / data->read_factor;
     MYFLT* aux;
     int auxlength = data->aux->length;
@@ -1445,11 +1442,6 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
             f2 = in_tab[x2];
             f3 = in_tab[x3];
             x = index - x1;
-            if (attr[3]==0)
-                samp = f1;
-            else if (attr[3]==1)
-                samp = (f2-f1)*x + f1;
-            else
             samp = f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
             samp = (y0-samp)*damp_factor + samp;
             y0 = samp;
@@ -1500,11 +1492,6 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
             f2 = in_tab[x2];
             f3 = in_tab[x3];
             x = index - x1;
-            if (attr[3]==0)
-                samp = f1;
-            else if (attr[3]==1)
-                samp = (f2-f1)*x + f1;
-            else
             samp= f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
             output[ii]=samp;
             output[ii]=(y1+output[ii])*damp_factor;
