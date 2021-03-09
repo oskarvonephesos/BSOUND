@@ -91,17 +91,59 @@ void cross_fade_buffer(BSOUND* bsound, RECORD_INFO* r){
             if (++k>recordbuflength){k = rzero;}
       }
 }
+#ifdef USE_CALLBACK
+void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r);
+void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float* temp1, float* temp2);
+typedef struct {
+  BSOUND* bsound;
+  RECORD_INFO* r;
+  float* temp1;
+  float* temp2;
+} CALLBACK_DATA;
+static int test_callback( const void *input,
+                                      void *output,
+                                      unsigned long frameCount,
+                                      const PaStreamCallbackTimeInfo* timeInfo,
+                                      PaStreamCallbackFlags statusFlags,
+                                      void *userData ){
+      CALLBACK_DATA* data = (CALLBACK_DATA*) userData;
+      float* in = (float*) input;
+      float* out = (float*) output;
+      BSOUND* bsound = data->bsound;
+      write_input(in, NULL, bsound, data->r );
+      apply_fx(in, out, bsound->head, bsound,data->temp1, data->temp2);
+      int i;
+      for (i=0; i<bsound->bufsize*bsound->num_chans; i++){
+          if (out[i]>1.0f){
+              out[i]=0.0f;
+          }
+          if (out[i]< -1.0f){
+              out[i]=0.0f;
+          }
+      }
+      if (bsound->pause_flag){
+          for (i =0; i<bsound->bufsize*bsound->num_chans; i++)
+          out[i]= 0.0f;
+      }
+      if (bsound->quit_flag)
+            return paComplete;
+      else
+            return 0;
+      }
+#endif
 void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r){
     PaError  err = paNoError;
     int i, recordhead = r->readhead;
     float* record_buf = r->recordbuf;
     //audio in
+    #ifndef USE_CALLBACK
     err = Pa_ReadStream(handle, input, bsound->bufsize);
     if (err!= paNoError){
         if (err==paInputUnderflow){
             error_message("input underflow", bsound);
         }
     }
+    #endif
     if (bsound->mono_input)
     copylefttoright(input, bsound, 1);
     if (bsound->record_flag){
@@ -237,6 +279,9 @@ int main(int argc, const char * argv[]) {
     int i; bool OutOfRangeFlag;
     int num_devices;
     //port_audio vars
+    #ifdef USE_CALLBACK
+    CALLBACK_DATA* my_callback_data = (CALLBACK_DATA*) malloc(sizeof(CALLBACK_DATA));
+    #endif
     PaError  err = paNoError;
     const PaDeviceInfo *inputinfo, *outputinfo;
     PaStreamParameters inparam, outparam;
@@ -329,17 +374,41 @@ int main(int argc, const char * argv[]) {
         outparam.suggestedLatency = outputinfo->defaultLowOutputLatency ;
             outparam.hostApiSpecificStreamInfo = NULL;
 
-        err = Pa_OpenStream(&handle, &inparam, &outparam, SR, bsound->bufsize, paNoFlag | (paMacCoreChangeDeviceParameters &paPlatformSpecificFlags), NULL, NULL);
+            samplein  = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->in_chans), 1);
+            sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+            temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+            temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
+            RECORD_INFO* myrecordinfo = init_recordinfo(bsound);recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
+      #ifdef USE_CALLBACK
+      my_callback_data->bsound = bsound;
+      my_callback_data->r = myrecordinfo;
+      my_callback_data->temp1 = temp1;
+      my_callback_data->temp2 = temp2;
+      err = Pa_OpenStream(&handle,
+           &inparam,
+           &outparam,
+           SR,
+           bsound->bufsize,
+           paNoFlag | (paMacCoreChangeDeviceParameters &paPlatformSpecificFlags),
+           test_callback,
+           my_callback_data);
+      #else
+        err = Pa_OpenStream(&handle,
+             &inparam,
+             &outparam,
+             SR,
+             bsound->bufsize,
+             paNoFlag | (paMacCoreChangeDeviceParameters &paPlatformSpecificFlags),
+             NULL,
+             NULL);
+        #endif
         if (err == paNoError){
             err = Pa_StartStream(handle);
             if (err==paNoError){
-                samplein  = (float *)calloc(sizeof(float)*2048*(bsound->num_chans+bsound->in_chans), 1);
-                sampleout = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                temp1     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
-                RECORD_INFO* myrecordinfo = init_recordinfo(bsound);recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
+
                 pthread_create(&input_handling, NULL, *(input_handler), (void *)bsound);
                 while(1){
+                      #ifndef USE_CALLBACK
                     OutOfRangeFlag = 0;
                     write_input(samplein, handle, bsound, myrecordinfo);
                     apply_fx(samplein, sampleout, head, bsound, temp1, temp2);
@@ -367,6 +436,9 @@ int main(int argc, const char * argv[]) {
                             error_message("output overflow", bsound);
                         }
                     }
+                    #else
+                    usleep(15000);
+                    #endif
                     if (bsound->quit_flag)
                         break;
 
