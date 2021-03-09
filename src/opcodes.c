@@ -1456,12 +1456,12 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
         //this guestimates one more sample
         x2 = ii-2;
         if (x2<0){x2+=tab_length;}
-        f2 = samp_reduced[j][x2];
+        f2 = samp_reduced[x2];
         f2 = samp_reduced[x2];
         x3 = ii -1;
         if (x3<0){x3+=tab_length;}
-        f3 = samp_reduced[j][x3];
-        samp_reduced[j][ii]= 2*f3 - f2;
+        f3 = samp_reduced[x3];
+        samp_reduced[ii]= 2*f3 - f2;
         f3 = samp_reduced[x3];
         samp_reduced[ii]= 2*f3 - f2;
 
