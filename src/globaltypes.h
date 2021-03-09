@@ -58,6 +58,7 @@ typedef struct _BSOUND{
     int default_buffer_length;
     short num_chans;
     int bufsize;
+    int requested_bufsize;
     int out_of_range;
     MYFLT hi_damp;
     struct _OP_STACK* head;

@@ -22,6 +22,7 @@
 BSOUND* init_bsound(){
     BSOUND* bsound = (BSOUND*) malloc(sizeof(BSOUND));
     bsound->bufsize               = BUF;
+    bsound->requested_bufsize     = bsound->bufsize;
     bsound->sample_rate           = SR;
     bsound->default_buffer_length = SR;
     bsound->wnd                   = NULL;

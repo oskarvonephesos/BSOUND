@@ -65,6 +65,7 @@ LOG_STATE init_log(const char* programm_location, BSOUND* bsound){
             int returnval;
             fscanf(fp, " %d %d", &returnval, &bsound->bufsize);
             bsound->mono_input = (bool) returnval;
+            bsound->requested_bufsize = bsound->bufsize;
         }
     }
     else {
@@ -95,7 +96,7 @@ void save_to_log(const char* programm_loc, BSOUND* bsound){
     memcpy(log_loc, programm_loc, loc_length);
     strcat(log_loc, "log.txt");
     fp = fopen(log_loc, "w");
-    fprintf(fp, "1 %d %d", bsound->mono_input, bsound->bufsize);
+    fprintf(fp, "1 %d %d", bsound->mono_input, bsound->requested_bufsize);
     fclose(fp);
     free (log_loc);
 }

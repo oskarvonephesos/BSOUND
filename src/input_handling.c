@@ -1029,7 +1029,7 @@ void print_preferences_menu(BSOUND* bsound, short* print_loc){
     mvprintw(print_loc[0], print_loc[1], "MONO AUDIO: ENABLED ");
     else
     mvprintw(print_loc[0], print_loc[1], "MONO AUDIO: DISABLED ");
-    mvprintw(print_loc[0]+1, print_loc[1], "BUFFER SIZE: %d", bsound->bufsize);
+    mvprintw(print_loc[0]+1, print_loc[1], "BUFFER SIZE: %d", bsound->requested_bufsize);
     if (bsound->crossfade_looping)
     mvprintw(print_loc[0]+2, print_loc[1], "CROSS FADE LOOP BOUNDARIES: ENABLED  ");
     else
@@ -1067,14 +1067,13 @@ void display_preferences_menu(BSOUND* bsound, short* print_loc){
                     break;
                 case 1:
                     erase();
-                    mvprintw(print_loc[0], print_loc[1], "CHANGING BUFFER SIZE");
-                    bsound->pause_flag = 1;
-                    if (bsound->bufsize < 512)
-                        bsound->bufsize *= 2;
+                    mvprintw(print_loc[0], print_loc[1], "CHANGING BUFFER SIZE WILL ONLY TAKE EFFECT AFTER RESTARTING BSOUND");
+                    mvprintw(print_loc[0]+2, print_loc[1], "PRESS ANY KEY TO CONTINUE");
+                    refresh(); getch();
+                    if (bsound->requested_bufsize < 2048)
+                        bsound->requested_bufsize *= 2;
                     else
-                        bsound->bufsize = 64;
-                    sleep(1);
-                    bsound->pause_flag = 0;
+                        bsound->requested_bufsize = 64;
                     print_preferences_menu(bsound, print_loc);
                     move(print_loc[0] + option_selected, print_loc[1]-1);
                     refresh();
