@@ -17,6 +17,8 @@ on MAC OS X
 
 In terminal, navigate to the downloaded directory, type 'make && make clean' and if no errors come up, start up BSOUND. This expects some frameworks to be in their system default locations (which maybe isn't a good idea) and so on and so forth, but it's worth a shot (and the makefile is so short, I'm sure you can edit it to your heart's content). If your missing many frameworks, try downloading XCode CommandLineTools (and changing the appropriate paths in the makefile).
 
+If you prefer portaudio's blocking interface over the (default) callback option, comment out -DUSE_CALLBACK from the CFLAGS in the makefile.
+
 on other UNIX systems:
 
 Before running the makefile download the portaudio code for your operating system and place it in the portaudio folder. Remove the "PA_USE_COREAUDIO" macro from the makefile, remove the (apple) frameworks, and make sure that the listing in the makefile corresponds with the files you need. There is a tutorial for compiling from source on linux in the portaudio repository, so hacking that into the makefile should get you 90% there. Make sure you have ncurses installed and your c compiler knows where to find it.
