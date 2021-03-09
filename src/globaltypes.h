@@ -58,7 +58,6 @@ typedef struct _BSOUND{
     int32_t default_buffer_length;
     int16_t num_chans;
     int32_t bufsize;
-    int32_t out_of_range;
     int32_t requested_bufsize;
     ///@deprecated?
     int32_t out_of_range;

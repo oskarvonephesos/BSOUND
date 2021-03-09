@@ -103,10 +103,9 @@ typedef struct {
     MYFLT mod_index;
     MYFLT* prv_y0;
     int32_t tab_length;
-    int16_t randomize;
     int16_t prv_fold;
     int16_t prv_offset;
-    int16_t square;
+    bool square;
 } MODDEMOD_OPS;
 typedef struct {
     MYFLT** samp_reduced;
@@ -139,7 +138,6 @@ typedef struct {
     MYFLT in_read;
     int32_t tab_length;
     MYFLT read_factor;
-    int16_t interpolate;
     MYFLT* prv_y0;
     MYFLT lp_freq;
     MYFLT prv_lp_freq;

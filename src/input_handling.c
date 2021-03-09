@@ -41,7 +41,7 @@ OP_STACK* load_st(BSOUND* bsound, int16_t* print_loc);
 void save_st(BSOUND* bsound, int16_t* print_loc);
 void display_preferences_menu(BSOUND* bsound, int16_t* print_loc);
 
-int16_t which_attr_is_skip(int32_t attr_num){
+int16_t which_attr_is_skip(int16_t attr_num){
     int16_t table[14]={5, //DELAY
         5, //PPDEL
         5, //TAPE
