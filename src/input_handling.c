@@ -147,7 +147,7 @@ struct attr_parse attr_types[NUM_OPTIONS]={
         {100, 2, 100, 10, 12,   100, 100},
         {80, 2, 100, 6, 0,      0, 100},
         "fsfsdss",5},
-    {BBD, {"time", "feedback", "filter", "mod amt", "mod speed","volume", "skip", "wet"},
+    {BBD, {"quality", "feedback", "filter", "mod amt", "mod speed","volume", "skip", "wet"},
         {20,  0,   1,   0, 0,  -60,     0,   0},
         {300, 100, 100, 100,100, 12,      100, 100},
         {100, 80,  70, 0, 0, 0,       0, 100},
