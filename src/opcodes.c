@@ -436,14 +436,13 @@ void dealloc_partikkel(BSOUND* bsound, void* data_st){
 }
 
 /// TODO: pan grains?
-int16_t is_denormal(MYFLT in){
+bool is_denormal(MYFLT in){
     if (fpclassify(in) == FP_SUBNORMAL)
         return 1;
     else
         return 0;
 }
 void partikkel(float*input, float*output, void* data_st, const int16_t* attr, const BSOUND* bsound){
-    //int32_t counter = 0;
     PARTIKKEL_OPS* data = (PARTIKKEL_OPS*) data_st;
     RNGBUF* in = data->in;
     RNGBUF* out = data->out;
@@ -1329,7 +1328,6 @@ void* init_bbd(BSOUND* bsound, USR_IN type){
     BBD_OPS* data = (BBD_OPS*)malloc(sizeof(BBD_OPS));
     int32_t i;
     data->read_factor = 0.15;
-    data->interpolate = 1;
     data->tab_length = bsound->sample_rate;
     data->samp_reduced = malloc(sizeof(MYFLT*)*bsound->num_chans);
     data->in_buffer = malloc(sizeof(MYFLT*)*bsound->num_chans);
