@@ -236,16 +236,17 @@ void* input_handler(void* in){
     getch(); erase();
     mvprintw(info_loc[0], info_loc[1], "Do you want to load a saved state?");
     mvprintw(info_loc[0] +1, info_loc[1], "YES   |||   NO");
+    move(info_loc[0] + 1, info_loc[1] + 11); refresh();
     while (1){
         single_int = getch();
         single_char = (char) single_int;
         if (single_char == 'a' || single_int == KEY_LEFT){
-            move(info_loc[0] +1, info_loc[1]);
+            move(info_loc[0] +1, info_loc[1]-1);
             load = 1;
             refresh();
         }
         if(single_char == 'd' || single_int == KEY_RIGHT){
-            move(info_loc[0] +1, info_loc[1] + 9);
+            move(info_loc[0] +1, info_loc[1] + 11);
             load = 0;
             refresh();
         }
@@ -336,7 +337,7 @@ void* input_handler(void* in){
                 break;
             }
             else if (single_char == ' '){
-                bsound->record_flag = !bsound->record_flag;
+                bsound->record_flag = true;
                 bsound->playback_flag = 0;
                 erase();
                 mvprintw(info_loc[0], info_loc[1], "RECORDING");
@@ -628,18 +629,18 @@ void* input_handler(void* in){
     erase();
     mvprintw(info_loc[0], info_loc[1], "Do you want to save the current state?");
     mvprintw(info_loc[0] +1, info_loc[1], "YES   |||   NO");
-    move(info_loc[0] +1, info_loc[1]);
+    move(info_loc[0] +1, info_loc[1] -1);
     load = 1;
     while (1){
         single_int = getch();
         single_char = (char) single_int;
         if (single_char == 'a' || single_int == KEY_LEFT){
-            move(info_loc[0] +1, info_loc[1]);
+            move(info_loc[0] +1, info_loc[1] -1);
             load = 1;
             refresh();
         }
         if(single_char == 'd' || single_int == KEY_RIGHT){
-            move(info_loc[0] +1, info_loc[1] + 12);
+            move(info_loc[0] +1, info_loc[1] + 11);
             load = 0;
             refresh();
         }
@@ -1085,6 +1086,7 @@ void display_preferences_menu(BSOUND* bsound, short* print_loc){
                     mvprintw(print_loc[0], print_loc[1], "LOOP CROSSFADING ENABLED");
                     mvprintw(print_loc[0]+1, print_loc[1], "BSOUND WILL APPLY CROSSFADING TO THE NEXT LOOP YOU RECORD");
                     mvprintw(print_loc[0]+3, print_loc[1], "PRESS ANY KEY TO CONTINUE");
+                    refresh();
                     getch();
                     print_preferences_menu(bsound, print_loc);
                     }
