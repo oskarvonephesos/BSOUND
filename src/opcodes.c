@@ -1377,7 +1377,7 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
     MYFLT* aux;
     int auxlength = data->aux->length;
     MYFLT* in_tab;
-    MYFLT** samp_reduced = data->samp_reduced;
+    MYFLT* samp_reduced;
     int x0, x1, x2, x3;
     MYFLT f0, f1, f2, f3, x, index;
     MYFLT feedback = attr[1]/100.0;
@@ -1429,6 +1429,7 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
         y0 = data->prv_y0[j];
         //frameCount is new frameCount
         read_factor = (MYFLT) bsound->bufsize/frameCount;
+        samp_reduced = data->samp_reduced[j];
         for (i= 0; i<frameCount; i++){
             index += read_factor ;
             if ((int)index >= tab_length){index -= tab_length;}
@@ -1447,9 +1448,7 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
             samp = f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
             samp = (y0-samp)*damp_factor + samp;
             y0 = samp;
-            f1 = in_tab[k];
-            f1 += data->in_buffer[(j+1)%num_chans][k++]; if (k>tab_length){k=0;}
-            samp_reduced[j][ii++] = samp; //+ f1*feedback;
+            samp_reduced[ii++] = samp;
 
             if (ii>=tab_length){ii=0;}
         }
@@ -1458,10 +1457,13 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
         x2 = ii-2;
         if (x2<0){x2+=tab_length;}
         f2 = samp_reduced[j][x2];
+        f2 = samp_reduced[x2];
         x3 = ii -1;
         if (x3<0){x3+=tab_length;}
         f3 = samp_reduced[j][x3];
         samp_reduced[j][ii]= 2*f3 - f2;
+        f3 = samp_reduced[x3];
+        samp_reduced[ii]= 2*f3 - f2;
 
     }
     data->samp_index = ii;
