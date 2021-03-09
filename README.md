@@ -9,13 +9,13 @@ This only works on UNIX based systems, because the "GUI" currently uses ncurses.
 
 # OPERATION
 
-At it's core, BSOUND is a very simple application. It takes in audio from your default audio input and sends it through a customizable FX chain and out to your default audio output. Currently, 13 different effects are available with different levels of sophistication and customizability. There is a little pdf manual that goes into more details (it was written for a non-initiated audience).
+At it's core, BSOUND is a very simple application. It takes in audio from your default audio input and sends it through a customizable FX chain and out to your default audio output. Currently, 13 different effects are available with different levels of sophistication and customizability, a little looper and the ability to save effects chains. There is a little pdf manual that goes into more details (it was written for a non-initiated audience).
 
 # COMPILING
 
 on MAC OS X
 
-In terminal, navigate to the downloaded directory, type 'make && make clean' and if no errors come up, start up BSOUND. This expects some frameworks to be in their system default locations (which maybe isn't a good idea) and so on and so forth, but it's worth a shot (and the makefile is so short, I'm sure you can edit it to your heart's content). If your missing many frameworks, try downloading XCode CommandLineTools (and changing the appropriate paths in the makefile).
+In terminal, navigate to the downloaded directory, type 'make && make clean' and if no errors come up, start up BSOUND. This expects some frameworks to be in their system default locations (which maybe isn't a good idea) and so on and so forth, but it's worth a shot (and the makefile is so short, I'm sure you can edit it to your heart's content). If you're missing many frameworks, try downloading XCode CommandLineTools (and changing the appropriate paths in the makefile).
 
 If you prefer portaudio's blocking interface over the (default) callback option, comment out -DUSE_CALLBACK from the CFLAGS in the makefile.
 
@@ -29,4 +29,4 @@ The loading and saving expect 4 files for the save slots; saving will just creat
 
 # TESTING
 
-If for some strange reason, you would like to perform tests on BSOUND, 'make test' will generate an executable for that purpose. Currently, I only use this capability to test  in-out-channel-configurations that I can't test in hardware. 'test' will produce a binary audio file, that the likes of audacity can decode (import raw data is your friend).
+If for some strange reason you would like to perform tests on BSOUND, 'make test' will generate an executable for that purpose. Currently, I have only used this code to test  in-out-channel-configurations that I can't test in hardware. 'test' will produce a binary audio file, that the likes of audacity can decode (import raw data:32-bit-float/little-endian(?)) is your friend).
