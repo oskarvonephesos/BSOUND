@@ -68,18 +68,18 @@ RECORD_INFO* init_recordinfo(BSOUND* bsound){
 RECORD_INFO* r = (RECORD_INFO*) malloc(sizeof(RECORD_INFO));
     r->bypass_active = 0;
     r->record_active = 0;
-    r->recordbuflength =150000*bsound->num_chans;//bsound->sample_rate*4* bsound->num_chans;
+    r->recordbuflength =bsound->sample_rate*20*bsound->num_chans;
     r->readhead = 0;
     r->crosses_zero = false;
     r->recordbuf = (float*) calloc(sizeof(float)*r->recordbuflength, 1);
     return r;
 }
 void cross_fade_buffer(BSOUND* bsound, RECORD_INFO* r){
-      int32_t crossfade_length = 5000; int32_t crossfade_start, i, j, k;
+      int32_t crossfade_length = 1000; int32_t crossfade_start, i, j, k;
       int32_t recordbuflength = r->recordbuflength, rzero = r->recordzero;
       MYFLT incr = 1.0/crossfade_length, amount = 0.0;
       float* recordbuf = r->recordbuf;
-      crossfade_start = r->recordend - 5000;
+      crossfade_start = r->recordend - crossfade_length;
       if (crossfade_start < 0)
             crossfade_start += r->recordbuflength;
       j = crossfade_start;
@@ -87,9 +87,18 @@ void cross_fade_buffer(BSOUND* bsound, RECORD_INFO* r){
       for (i=0; i<crossfade_length; i++){
             recordbuf[j] = amount * recordbuf[k] + (1.0-amount)* recordbuf[j];
             amount += incr;
-            if (++j>recordbuflength){j = rzero;}
-            if (++k>recordbuflength){k = rzero;}
+            if (++j>=recordbuflength){j = rzero;}
+            if (++k>=recordbuflength){k = rzero;}
       }
+      r->recordstart += crossfade_length ;
+      if (r->recordstart >= recordbuflength){
+            r->recordstart -= recordbuflength;
+            r->crosses_zero = false;
+      }
+      if (r->recordstart > r->recordend)
+          r->recordzero = 0;
+      else //recordstart != recordend, so this is recordstart<recordend
+          r->recordzero = r->recordstart;
 }
 #ifdef USE_CALLBACK
 void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r);
@@ -149,9 +158,9 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
     if (bsound->record_flag){
         //record_start case
         if (!r->record_active){
-            r->recordstart = r->readhead;
+            r->recordstart   = r->readhead;
             r->record_active = true;
-            r->crosses_zero = false;
+            r->crosses_zero  = false;
         }
         int sampCount = bsound->bufsize * bsound->num_chans;
         int rbuflength = r->recordbuflength;
@@ -166,15 +175,18 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
     else {
     //record_end case: set appropriate points on tape
     if (r->record_active){
-            if (--recordhead<0)
+            if (--recordhead<0){
                 recordhead += r->recordbuflength;
+                r->crosses_zero = false;
+          }
             r->recordend = recordhead;
-            if (r->recordstart > r->recordend)
+            if (r->crosses_zero)
                 r->recordzero = 0;
             else //recordstart != recordend, so this is recordstart<recordend
                 r->recordzero = r->recordstart;
             //make sure not to call again || playbackflag is set in input_handling
             r->record_active = 0;
+            if (bsound->crossfade_looping)
             cross_fade_buffer(bsound, r);
         recordhead = r->recordstart;
         }
@@ -209,7 +221,7 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
 
     if (bsound->playback_flag){
         int sampCount = bsound->bufsize * bsound->num_chans;
-        int rend       = r->recordend,
+        int  rend       = r->recordend,
              rstart     = r->recordstart,
              rbuflength = r->recordbuflength,
              rzero      = r->recordzero;
