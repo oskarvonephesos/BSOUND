@@ -30,6 +30,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include "data_types.h"
 #include "programm_state.h"
 #include "opcodes.h"
@@ -52,7 +53,6 @@ void free_op_stack(OP_STACK* head, BSOUND* bsound){
         }
     }
 }
-int g_inch, g_outch;
 void test_input(PaStream* handle, float* samplein, BSOUND* bsound){
     int i, j;
     int frameCount = bsound->bufsize * bsound->in_chans;

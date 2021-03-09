@@ -22,6 +22,7 @@
 BSOUND* init_bsound(){
     BSOUND* bsound = (BSOUND*) malloc(sizeof(BSOUND));
     bsound->bufsize               = BUF;
+    bsound->requested_bufsize     = bsound->bufsize;
     bsound->sample_rate           = SR;
     bsound->default_buffer_length = SR;
     bsound->wnd                   = NULL;
@@ -36,6 +37,7 @@ BSOUND* init_bsound(){
     bsound->bypass_flag           = 0;
     bsound->record_flag           = 0;
     bsound->playback_flag         = 0;
+    bsound->crossfade_looping     = true;
     bsound->filter_bank_active    = 0;
     bsound->filter_bank_exists    = 0;
     return bsound;

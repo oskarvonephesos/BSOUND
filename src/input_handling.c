@@ -147,11 +147,11 @@ struct attr_parse attr_types[NUM_OPTIONS]={
         {100, 2, 100, 10, 12,   100, 100},
         {80, 2, 100, 6, 0,      0, 100},
         "fsfsdss",5},
-    {BBD, {"time", "feedback", "filter", "crunch", "volume", "skip", "wet"},
-        {20,  0,   1,   0, -60,     0,   0},
-        {300, 100, 100, 2, 12,      100, 100},
-        {100, 80,  70,  1, 0,       0, 100},
-        "ssfsdss", 5},
+    {BBD, {"quality", "feedback", "filter", "mod amt", "mod speed","volume", "skip", "wet"},
+        {20,  0,   1,   0, 0,  -60,     0,   0},
+        {300, 100, 100, 100,100, 12,      100, 100},
+        {100, 80,  70, 0, 0, 0,       0, 100},
+        "ssfssdss", 5},
     {RESEQ, {"gain", "bandwidth", "tilt", "crunch", "volume", "skip", "wet"},
         {-50,  20,   0,   0, -60,     0,   0},
         {60, 400, 100, 2, 12,      100, 100},
@@ -236,16 +236,17 @@ void* input_handler(void* in){
     getch(); erase();
     mvprintw(info_loc[0], info_loc[1], "Do you want to load a saved state?");
     mvprintw(info_loc[0] +1, info_loc[1], "YES   |||   NO");
+    move(info_loc[0] + 1, info_loc[1] + 11); refresh();
     while (1){
         single_int = getch();
         single_char = (char) single_int;
         if (single_char == 'a' || single_int == KEY_LEFT){
-            move(info_loc[0] +1, info_loc[1]);
+            move(info_loc[0] +1, info_loc[1]-1);
             load = 1;
             refresh();
         }
         if(single_char == 'd' || single_int == KEY_RIGHT){
-            move(info_loc[0] +1, info_loc[1] + 9);
+            move(info_loc[0] +1, info_loc[1] + 11);
             load = 0;
             refresh();
         }
@@ -336,7 +337,7 @@ void* input_handler(void* in){
                 break;
             }
             else if (single_char == ' '){
-                bsound->record_flag = !bsound->record_flag;
+                bsound->record_flag = true;
                 bsound->playback_flag = 0;
                 erase();
                 mvprintw(info_loc[0], info_loc[1], "RECORDING");
@@ -628,18 +629,18 @@ void* input_handler(void* in){
     erase();
     mvprintw(info_loc[0], info_loc[1], "Do you want to save the current state?");
     mvprintw(info_loc[0] +1, info_loc[1], "YES   |||   NO");
-    move(info_loc[0] +1, info_loc[1]);
+    move(info_loc[0] +1, info_loc[1] -1);
     load = 1;
     while (1){
         single_int = getch();
         single_char = (char) single_int;
         if (single_char == 'a' || single_int == KEY_LEFT){
-            move(info_loc[0] +1, info_loc[1]);
+            move(info_loc[0] +1, info_loc[1] -1);
             load = 1;
             refresh();
         }
         if(single_char == 'd' || single_int == KEY_RIGHT){
-            move(info_loc[0] +1, info_loc[1] + 12);
+            move(info_loc[0] +1, info_loc[1] + 11);
             load = 0;
             refresh();
         }
@@ -1029,13 +1030,18 @@ void print_preferences_menu(BSOUND* bsound, int16_t* print_loc){
     mvprintw(print_loc[0], print_loc[1], "MONO AUDIO: ENABLED ");
     else
     mvprintw(print_loc[0], print_loc[1], "MONO AUDIO: DISABLED ");
-    mvprintw(print_loc[0]+1, print_loc[1], "BUFFER SIZE: %d", bsound->bufsize);
-    mvprintw(print_loc[0]+3, print_loc[1], "CHOOSE AND HIT ENTER TO TOGGLE/CYCLE THROUGH SETTINGS");
-    mvprintw(print_loc[0]+4, print_loc[1], "type 'q' to go back");
+    mvprintw(print_loc[0]+1, print_loc[1], "BUFFER SIZE: %d", bsound->requested_bufsize);
+    if (bsound->crossfade_looping)
+    mvprintw(print_loc[0]+2, print_loc[1], "CROSS FADE LOOP BOUNDARIES: ENABLED  ");
+    else
+    mvprintw(print_loc[0]+2, print_loc[1], "CROSS FADE LOOP BOUNDARIES: DISABLED ");
+    mvprintw(print_loc[0]+4, print_loc[1], "CHOOSE AND HIT ENTER TO TOGGLE/CYCLE THROUGH SETTINGS");
+    mvprintw(print_loc[0]+5, print_loc[1], "type 'q' to go back");
     refresh();
 }
+
 void display_preferences_menu(BSOUND* bsound, int16_t* print_loc){
-    char single_char; int32_t single_int, option_selected, max_options = 1;
+    char single_char; int32_t single_int, option_selected, max_options = 2;
     print_preferences_menu(bsound, print_loc);
     move(print_loc[0], print_loc[1] - 1); option_selected = 0; refresh();
     while (1){
@@ -1063,15 +1069,31 @@ void display_preferences_menu(BSOUND* bsound, int16_t* print_loc){
                     break;
                 case 1:
                     erase();
-                    mvprintw(print_loc[0], print_loc[1], "CHANGING BUFFER SIZE");
-                    bsound->pause_flag = 1;
-                    if (bsound->bufsize < 2048)
-                        bsound->bufsize *= 2;
+                    mvprintw(print_loc[0], print_loc[1], "CHANGING BUFFER SIZE WILL ONLY TAKE EFFECT AFTER RESTARTING BSOUND");
+                    mvprintw(print_loc[0]+2, print_loc[1], "PRESS ANY KEY TO CONTINUE");
+                    refresh(); getch();
+                    if (bsound->requested_bufsize < 2048)
+                        bsound->requested_bufsize *= 2;
                     else
-                        bsound->bufsize = 64;
-                    sleep(1);
-                    bsound->pause_flag = 0;
+                        bsound->requested_bufsize = 64;
                     print_preferences_menu(bsound, print_loc);
+                    move(print_loc[0] + option_selected, print_loc[1]-1);
+                    refresh();
+                    break;
+               case 2:
+                    bsound->crossfade_looping = !(bsound->crossfade_looping);
+                    if (bsound->crossfade_looping){
+                    erase();
+                    mvprintw(print_loc[0], print_loc[1], "LOOP CROSSFADING ENABLED");
+                    mvprintw(print_loc[0]+1, print_loc[1], "BSOUND WILL APPLY CROSSFADING TO THE NEXT LOOP YOU RECORD");
+                    mvprintw(print_loc[0]+3, print_loc[1], "PRESS ANY KEY TO CONTINUE");
+                    refresh();
+                    getch();
+                    print_preferences_menu(bsound, print_loc);
+                    }
+                    else{
+                          mvprintw(print_loc[0]+2, print_loc[1], "CROSS FADE LOOP BOUNDARIES: DISABLED ");
+                    }
                     move(print_loc[0] + option_selected, print_loc[1]-1);
                     refresh();
                     break;

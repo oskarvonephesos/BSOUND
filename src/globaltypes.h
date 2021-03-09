@@ -59,6 +59,9 @@ typedef struct _BSOUND{
     int16_t num_chans;
     int32_t bufsize;
     int32_t out_of_range;
+    int32_t requested_bufsize;
+    ///@deprecated?
+    int32_t out_of_range;
     MYFLT hi_damp;
     struct _OP_STACK* head;
     bool quit_flag;
@@ -72,6 +75,7 @@ typedef struct _BSOUND{
     bool bypass_flag;
     bool record_flag;
     bool playback_flag;
+    bool crossfade_looping;
     WINDOW* wnd;
     bool filter_bank_active;
     bool filter_bank_exists;
