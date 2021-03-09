@@ -19,12 +19,12 @@
     **/
 #include "data_types.h"
 #include "programm_state.h"
-RNGBUF* alloc_rngbuf( BSOUND* bsound, int length){
-    short num_chans = bsound->num_chans;
+RNGBUF* alloc_rngbuf( BSOUND* bsound, int32_t length){
+    int16_t num_chans = bsound->num_chans;
     RNGBUF* buffer = (RNGBUF *) malloc(sizeof(RNGBUF));
     if (buffer == NULL)
         return NULL;
-    int i;
+    int32_t i;
     buffer->value = malloc (sizeof(MYFLT*)*num_chans);
     if (buffer->value == NULL)
         return NULL;
@@ -40,7 +40,7 @@ RNGBUF* alloc_rngbuf( BSOUND* bsound, int length){
     return buffer;
 }
 void dealloc_rngbuf(RNGBUF* buffer, BSOUND* bsound){
-    int i;
+    int32_t i;
     for (i=0; i<bsound->num_chans; i++){
     free(buffer->value[i]);
         buffer->value[i] = NULL;}
@@ -48,7 +48,7 @@ void dealloc_rngbuf(RNGBUF* buffer, BSOUND* bsound){
     buffer= NULL;
 
 }
-DELAY_LINE* alloc_delay_line(BSOUND* bsound, int length){
+DELAY_LINE* alloc_delay_line(BSOUND* bsound, int32_t length){
     DELAY_LINE* line = (DELAY_LINE*) malloc(sizeof(DELAY_LINE));
     if (line == NULL)
         return NULL;

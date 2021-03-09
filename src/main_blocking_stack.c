@@ -45,7 +45,7 @@
 ///this was originally in stack_actions, but has been moved here since stack_actions was decomissioned
 void free_op_stack(OP_STACK* head, BSOUND* bsound){
     OP_STACK * current= head;
-    int i;
+    int32_t i;
     if (bsound->num_ops != 0){
         for (i= 0; i<bsound->num_ops; i++){
             current->dealloc(bsound, current->func_st);
@@ -57,11 +57,11 @@ typedef struct {
     bool bypass_active;
     bool record_active;
     bool crosses_zero;
-    int recordbuflength;
-    int recordstart;
-    int recordend;
-    int recordzero;
-    int readhead;
+    int32_t recordbuflength;
+    int32_t recordstart;
+    int32_t recordend;
+    int32_t recordzero;
+    int32_t readhead;
     float* recordbuf;
 }RECORD_INFO;
 RECORD_INFO* init_recordinfo(BSOUND* bsound){
@@ -142,8 +142,9 @@ static int test_callback( const void *input,
 #endif
 void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r){
     PaError  err = paNoError;
-    int i, recordhead = r->readhead;
+    int32_t i, recordhead = r->readhead;
     float* record_buf = r->recordbuf;
+
     //audio in
     #ifndef USE_CALLBACK
     err = Pa_ReadStream(handle, input, bsound->bufsize);
@@ -162,8 +163,8 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
             r->record_active = true;
             r->crosses_zero  = false;
         }
-        int sampCount = bsound->bufsize * bsound->num_chans;
-        int rbuflength = r->recordbuflength;
+        int32_t sampCount = bsound->bufsize * bsound->num_chans;
+        int32_t rbuflength = r->recordbuflength;
         for (i=0; i<sampCount;){
         record_buf[recordhead++] = input[i++];
             if (recordhead >= rbuflength){
@@ -192,7 +193,7 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
         }
     if (bsound->bypass_flag){
         if (!r->bypass_active){
-            int j; MYFLT incr = 0.99;
+            int32_t j; MYFLT incr = 0.99;
             for (j=0; j<512; j++){
             input[j]=input[j]*incr;//samplein[j]*(1.0/(j+1));
                 incr = incr*incr;
@@ -202,14 +203,14 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
             r->bypass_active = 1;
         }
            else {
-        int j; //this is necessary because of in/out swapping
+        int32_t j; //this is necessary because of in/out swapping
         for (j=0; j<2048*bsound->num_chans; j++)
         input[j]=0.0f;
             }
     }
     else{
         if (r->bypass_active){
-            int j; MYFLT factor = pow(pow(10, 20), 1.0/1024);
+            int32_t j; MYFLT factor = pow(pow(10, 20), 1.0/1024);
             MYFLT incr = pow(10, -20);
             for (j=0; j<1024; j++){
             input[j]=input[j]*incr;
@@ -220,8 +221,10 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
     }
 
     if (bsound->playback_flag){
-        int sampCount = bsound->bufsize * bsound->num_chans;
-        int  rend       = r->recordend,
+
+        int32_t sampCount = bsound->bufsize * bsound->num_chans;
+        int32_t rend       = r->recordend,
+
              rstart     = r->recordstart,
              rbuflength = r->recordbuflength,
              rzero      = r->recordzero;
@@ -243,7 +246,7 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
     r->readhead = recordhead;
 }
 void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float* temp1, float* temp2){
-    int i, skip_total = 0;
+    int32_t i, skip_total = 0;
     float* temp;
     OP_STACK* current_op = head;
     if (bsound->num_ops == 0){
@@ -252,8 +255,8 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
         }
     }
     else{
-        short attr_num;
-        long sampcount = bsound->bufsize * bsound->num_chans;
+        int16_t attr_num;
+        int64_t sampcount = bsound->bufsize * bsound->num_chans;
         for (i=0; i<sampcount; i++){
             temp1[i]=input[i];
             output[i]=0.0f;
@@ -265,7 +268,7 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
         if (i<bsound->num_ops){
             attr_num = which_attr_is_skip(current_op->type);
             if (current_op->attr[attr_num]){
-                int j;
+                int32_t j;
                 skip_total += current_op->attr[attr_num];
                 MYFLT skip_amount = current_op->attr[attr_num]/100.0;
                 for (j=0; j<sampcount; j++)
@@ -283,13 +286,13 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
         output[i]+=temp2[i];
     }
 }
-int main(int argc, const char * argv[]) {
+int32_t main(int32_t argc, const char * argv[]) {
     BSOUND * bsound = init_bsound();
     bsound->programm_loc = argv[0];
     OP_STACK* head = init_head();
     bsound->head = head;
-    int i; bool OutOfRangeFlag;
-    int num_devices;
+    int32_t i; bool OutOfRangeFlag;
+    int32_t num_devices;
     //port_audio vars
     #ifdef USE_CALLBACK
     CALLBACK_DATA* my_callback_data = (CALLBACK_DATA*) malloc(sizeof(CALLBACK_DATA));
@@ -342,7 +345,7 @@ int main(int argc, const char * argv[]) {
         outputinfo=Pa_GetDeviceInfo(outparam.device);
         while (inputinfo->maxInputChannels < 1 ){
             printf("Your input device does not allow audio input\nPlease choose an appropriate device:\n");
-            int devicecount = Pa_GetDeviceCount(), my_device;
+            int32_t devicecount = Pa_GetDeviceCount(), my_device;
             const PaDeviceInfo* myinfo;
             for (i=0; i<devicecount; i++){
                 myinfo = Pa_GetDeviceInfo(i);
@@ -355,7 +358,7 @@ int main(int argc, const char * argv[]) {
         }
         while (outputinfo->maxOutputChannels < 1 ){
             printf("Your output device does not allow audio output\nPlease choose an appropriate device:\n");
-            int devicecount = Pa_GetDeviceCount(), my_device;
+            int32_t devicecount = Pa_GetDeviceCount(), my_device;
             const PaDeviceInfo* myinfo;
             for (i=0; i<devicecount; i++){
                 myinfo = Pa_GetDeviceInfo(i);

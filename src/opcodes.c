@@ -25,9 +25,9 @@
 #include <stdio.h>
 ///this is a mess, but it is explained in input_handling.c
 //maybe belongs in util_opcodes
-MYFLT interval_to_float_conv(short attr){
+MYFLT interval_to_float_conv(int16_t attr){
     MYFLT interval_convert_tab[32];
-    int display_index = attr/10, i;
+    int32_t display_index = attr/10, i;
     interval_convert_tab[0]=0.25f; interval_convert_tab[1]=0.375f;
     for (i=2; i<11; i++)
         interval_convert_tab[i] = (8.0+i-2.0)/16.0;
@@ -41,16 +41,16 @@ MYFLT interval_to_float_conv(short attr){
         return interval_convert_tab[display_index];
     }
 }
-MYFLT attr_to_freq_conv(short attr){
+MYFLT attr_to_freq_conv(int16_t attr){
     return 1.0 + pow(20000.0, attr/100.0);
 }
 void* init_delay(BSOUND* bsound, USR_IN type){
     DELAY_OPS* delay_struct = (DELAY_OPS*) calloc(sizeof(DELAY_OPS), 1);
-    short num_chans = bsound->num_chans;
-    int i, buf_length=0, padding = 100;
+    int16_t num_chans = bsound->num_chans;
+    int32_t i, buf_length=0, padding = 100;
     MYFLT lp_damp;
 
-    delay_struct->delay_length = (int*)calloc(sizeof(int)*num_chans, 1);
+    delay_struct->delay_length = (int32_t*)calloc(sizeof(int32_t)*num_chans, 1);
     delay_struct->feedback = calloc(sizeof(MYFLT*)*num_chans, 1);
     delay_struct->current_feedback = calloc(sizeof(MYFLT*)*num_chans, 1);
     delay_struct->weighting = calloc(sizeof(MYFLT*)*num_chans, 1);
@@ -75,7 +75,7 @@ void* init_delay(BSOUND* bsound, USR_IN type){
                 delay_struct->spacing[i] = 1.0/ 20;
             }
             for (i= 0; i<num_chans; i++){
-                int j;
+                int32_t j;
                 delay_struct->weighting[i] = (MYFLT*) calloc(sizeof(MYFLT)*delay_struct->num_taps, 1);
                 delay_struct->weighting[i][0]= 1.0 * delay_struct->output_scaling;
                 for (j=1; j<delay_struct->num_taps; j++){
@@ -99,7 +99,7 @@ void* init_delay(BSOUND* bsound, USR_IN type){
             for (i= 0; i<num_chans; i++){
                 delay_struct->weighting[i] = (MYFLT*) calloc(sizeof(MYFLT)*delay_struct->num_taps, 1);
                 delay_struct->weighting[i][0]= 1.0 * delay_struct->output_scaling;
-                int j;
+                int32_t j;
                 for (j=1; j<delay_struct->num_taps; j++)
                 delay_struct->weighting[i][j]=1.0*delay_struct->output_scaling/(j+1);
             }
@@ -122,7 +122,7 @@ void* init_delay(BSOUND* bsound, USR_IN type){
             delay_struct->weighting[i]=(MYFLT*)malloc(sizeof(MYFLT)*delay_struct->num_taps);
         }
         for (i=0; i<num_chans; i++){
-            int j;
+            int32_t j;
             for (j=0; j<delay_struct->num_taps; j++){
                 delay_struct->weighting[i][j]=delay_struct->output_scaling/((delay_struct->num_taps)-j) ;//* delay_struct->output_scaling;
             }
@@ -146,7 +146,7 @@ void* init_delay(BSOUND* bsound, USR_IN type){
                 delay_struct->weighting[i]=(MYFLT*)malloc(sizeof(MYFLT)*delay_struct->num_taps);
             }
             for (i=0; i<num_chans; i++){
-                int j;
+                int32_t j;
                 for (j=0; j<delay_struct->num_taps; j++){
                     delay_struct->weighting[i][j]=0.8f/((delay_struct->num_taps)-j) * delay_struct->output_scaling;
                 }
@@ -183,7 +183,7 @@ if (delay_struct->aux == NULL){
 }
 void dealloc_delay(BSOUND* bsound, void* data_st){
     DELAY_OPS* data = (DELAY_OPS *) data_st;
-    int i;
+    int32_t i;
     for (i=0; i<bsound->num_chans; i++){
         free(data->feedback[i]);
 
@@ -192,18 +192,18 @@ void dealloc_delay(BSOUND* bsound, void* data_st){
     dealloc_rngbuf(data->aux, bsound);
     free(data->delay_length);
 }
-void delay(float *input, float * output, void* data,const short* attr, const BSOUND* bsound){
+void delay(float *input, float * output, void* data,const int16_t* attr, const BSOUND* bsound){
     DELAY_OPS* delay = (DELAY_OPS*) data;
-    int i, i2, ii, j, j1, k, num_chans;
-    long auxlength;
-    long frameCount    = bsound->bufsize;
+    int32_t i, i2, ii, j, j1, k, num_chans;
+    int64_t auxlength;
+    int64_t frameCount    = bsound->bufsize;
     DELAY_LINE ** line = delay->lines;
     MYFLT** feedback   = delay->current_feedback;
     MYFLT dampfactor   = delay->lp_damp, y0;
     MYFLT volume       = pow(10.0, attr[4]/20.0);
     MYFLT interpolated, interpolated2, f0, f1, f2, f3, x, read_index, read_index2, incr, incr2;
     MYFLT* spacing = delay->current_spacing, **weighting = delay->current_weighting;
-    int x0, x1, x2, x3, line_length, line_length2;
+    int32_t x0, x1, x2, x3, line_length, line_length2;
     num_chans=bsound->num_chans;
     RNGBUF* aux = delay->aux;
     auxlength=aux->length;
@@ -215,7 +215,7 @@ void delay(float *input, float * output, void* data,const short* attr, const BSO
         feedback[j][i] = delay->feedback[j][i] * ((MYFLT)attr[1]/100.0);
     }
     //find largest weight
-    int largest_weight_x = 0; MYFLT my_largest_weight = 0.0;
+    int32_t largest_weight_x = 0; MYFLT my_largest_weight = 0.0;
     for (j=0; j<num_chans; j++){
         for (i=0; i<delay->num_taps; i++){
             if (delay->weighting[j][i] > my_largest_weight){
@@ -268,11 +268,11 @@ void delay(float *input, float * output, void* data,const short* attr, const BSO
         for (k = 0; k<frameCount; k++){
             read_index += incr;
             read_index2 += incr2;
-            if (((int)read_index)>=line_length ){read_index-=(MYFLT)line_length;}
-            x0 = (int)(read_index - 1.0);
-            x1 = (int) read_index;
-            x2 = (int)(read_index + 1.0);
-            x3 = (int)(read_index + 2.0);
+            if (((int32_t)read_index)>=line_length ){read_index-=(MYFLT)line_length;}
+            x0 = (int32_t)(read_index - 1.0);
+            x1 = (int32_t) read_index;
+            x2 = (int32_t)(read_index + 1.0);
+            x3 = (int32_t)(read_index + 2.0);
             if (x0<0){x0+= line_length;}
             if (x2>=line_length){x2-= line_length;}
             if (x3>=line_length){x3-= line_length;}
@@ -282,11 +282,11 @@ void delay(float *input, float * output, void* data,const short* attr, const BSO
             f2 = line[j]->value[x2];
             f3 = line[j]->value[x3];
             interpolated= f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
-            if (((int)read_index2)>=line_length2 ){read_index2-=(MYFLT)line_length2;}
-            x0 = (int)(read_index2 - 1.0);
-            x1 = (int) read_index2;
-            x2 = (int)(read_index2 + 1.0);
-            x3 = (int)(read_index2 + 2.0);
+            if (((int32_t)read_index2)>=line_length2 ){read_index2-=(MYFLT)line_length2;}
+            x0 = (int32_t)(read_index2 - 1.0);
+            x1 = (int32_t) read_index2;
+            x2 = (int32_t)(read_index2 + 1.0);
+            x3 = (int32_t)(read_index2 + 2.0);
             if (x0<0){x0+= line_length2;}
             if (x2>=line_length2){x2-= line_length2;}
             if (x3>=line_length2){x3-= line_length2;}
@@ -318,11 +318,11 @@ void delay(float *input, float * output, void* data,const short* attr, const BSO
             if (read_index < 0.0){read_index += (MYFLT) line_length;}
         for (k=0; k<frameCount; k++){
             read_index += incr;
-            if (((int)read_index)>=line_length ){read_index-=(MYFLT)line_length;}
-            x0 = (int)(read_index - 1.0);
-            x1 = (int) read_index;
-            x2 = (int)(read_index + 1.0);
-            x3 = (int)(read_index + 2.0);
+            if (((int32_t)read_index)>=line_length ){read_index-=(MYFLT)line_length;}
+            x0 = (int32_t)(read_index - 1.0);
+            x1 = (int32_t) read_index;
+            x2 = (int32_t)(read_index + 1.0);
+            x3 = (int32_t)(read_index + 2.0);
             if (x0<0){x0+= line_length;}
             if (x2>=line_length){x2-= line_length;}
             if (x3>=line_length){x3-= line_length;}
@@ -382,10 +382,10 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
             break;
     }
 
-    int i;
-    int max_rand;
+    int32_t i;
+    int32_t max_rand;
     double rand_a, rand_b;
-    int buf_length = bsound->sample_rate *4;
+    int32_t buf_length = bsound->sample_rate *4;
     data->in=alloc_rngbuf(bsound, buf_length);
     data->out = alloc_rngbuf(bsound, buf_length);
     data->err_term = malloc(sizeof(MYFLT*)*bsound->num_chans);
@@ -405,7 +405,7 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     }
     data->prv_y0        = (MYFLT*) calloc(sizeof(MYFLT)*bsound->num_chans, 1);
     data->envtab_length = MAX_GRAIN_LENGTH;
-    data->disttab       = (int*) malloc(sizeof(int)*(data->disttab_length));
+    data->disttab       = (int32_t*) malloc(sizeof(int32_t)*(data->disttab_length));
     data->envtab        = (MYFLT*)malloc(sizeof(MYFLT)*data->envtab_length); //this is currently the max_env_tab_length
     data->phs = 0;
     data->transpose_phs = 0;
@@ -424,7 +424,7 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     for (i=0; i<data->envtab_length; i++){ //HANNING WINDOW
         data->envtab[i] = data->max_val*(0.5* (1-cos(2*M_PI*i/(data->envtab_length-1))));
     }
-    data->transposed_index = (bsound->bufsize -2) - (data->pitch_factor*((int)(bsound->bufsize/data->pitch_factor)));
+    data->transposed_index = (bsound->bufsize -2) - (data->pitch_factor*((int32_t)(bsound->bufsize/data->pitch_factor)));
     return (void *) data;
 }
 void dealloc_partikkel(BSOUND* bsound, void* data_st){
@@ -436,14 +436,14 @@ void dealloc_partikkel(BSOUND* bsound, void* data_st){
 }
 
 /// TODO: pan grains?
-short is_denormal(MYFLT in){
+int16_t is_denormal(MYFLT in){
     if (fpclassify(in) == FP_SUBNORMAL)
         return 1;
     else
         return 0;
 }
-void partikkel(float*input, float*output, void* data_st, const short* attr, const BSOUND* bsound){
-    //int counter = 0;
+void partikkel(float*input, float*output, void* data_st, const int16_t* attr, const BSOUND* bsound){
+    //int32_t counter = 0;
     PARTIKKEL_OPS* data = (PARTIKKEL_OPS*) data_st;
     RNGBUF* in = data->in;
     RNGBUF* out = data->out;
@@ -457,13 +457,13 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     MYFLT *outch;
     MYFLT* err_term;
     MYFLT* transposed_val;
-    int* disttab = data->disttab, d_index = data->disttab_index, d_length = data->disttab_length, d_redraw, i;
+    int32_t* disttab = data->disttab, d_index = data->disttab_index, d_length = data->disttab_length, d_redraw, i;
     //update from attr
-    data->grain_length = (int)(((MYFLT)attr[2])/100.0*MAX_GRAIN_LENGTH);
+    data->grain_length = (int32_t)(((MYFLT)attr[2])/100.0*MAX_GRAIN_LENGTH);
     data->frequency = bsound->sample_rate/attr[1];
-    data->curr_dist = (int)((MYFLT)data->max_dist * (MYFLT)attr[0] /100.0);
+    data->curr_dist = (int32_t)((MYFLT)data->max_dist * (MYFLT)attr[0] /100.0);
     d_redraw = bsound->num_chans*bsound->bufsize / data->frequency + 6;
-    MYFLT rand_a, rand_b; int max_rand = data->curr_dist;
+    MYFLT rand_a, rand_b; int32_t max_rand = data->curr_dist;
     //srand(time(NULL));
     for (i = 0; i<d_redraw; ){
         rand_a = (MYFLT)(rand()%max_rand)/max_rand; //pair of random vals
@@ -477,11 +477,11 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
         if(++d_index>=d_length){d_index-=d_length;}
         i += 2;
     }
-    short num_chans = bsound->num_chans;
-    long frameCount = bsound->bufsize;
-    int ii, j, jj, jjj, k,   kk, transposed_length;
-    int to_write, grain_length = data->grain_length, frequency = data->frequency, transpose_freq = data->transpose_frequency;
-    long inlength = in->length;
+    int16_t num_chans = bsound->num_chans;
+    int64_t frameCount = bsound->bufsize;
+    int32_t ii, j, jj, jjj, k,   kk, transposed_length;
+    int32_t to_write, grain_length = data->grain_length, frequency = data->frequency, transpose_freq = data->transpose_frequency;
+    int64_t inlength = in->length;
     MYFLT pitch_factor = interval_to_float_conv(attr[3]);
     //for filter
     MYFLT y0, hi_damp;//, y1;
@@ -493,13 +493,13 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
     // this limits the amount of available feedback at low spread settings
     //  spread
     if (attr[0]<10){
-        short new_attr;
+        int16_t new_attr;
         if (attr[7]>50){
-            new_attr = (short) (50.0 + (attr[0])/10.0 * (attr[7]-50.0));
+            new_attr = (int16_t) (50.0 + (attr[0])/10.0 * (attr[7]-50.0));
             feedback = (MYFLT) new_attr/100.0;
     }
     }
-    int x0, x1, x2, x3;
+    int32_t x0, x1, x2, x3;
     //check if the grain_length has changed since last k-cycle
     if (data->envtab_length != grain_length){
         for (i=0; i<grain_length; i++){
@@ -544,19 +544,19 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
             y0 = transposed[j]->prv_y0;
             to_write = (MYFLT)frameCount/pitch_factor;
             transposed_val = transposed[j]->value;
-            ii = (int)(transposed[j]->read_index);
-            index = data->transposed_index;//(in->index + in->available - 2  + frameCount) - (pitch_factor*((int)(frameCount/pitch_factor))) ;
+            ii = (int32_t)(transposed[j]->read_index);
+            index = data->transposed_index;//(in->index + in->available - 2  + frameCount) - (pitch_factor*((int32_t)(frameCount/pitch_factor))) ;
             if (index<0){index += inlength;}
             for (i=0; i<to_write; i++){
                 //index reads inval
                 //i is read_index
                 index += pitch_factor;
-                if (((int)index)<0){index+= inlength;}
-                if (((int)index)>=inlength){index-=(MYFLT)inlength;}
-                x0 = (int)(index-1.0);
-                x1 = (int) index;
-                x2 = (int)(index +1.0);
-                x3 = (int)(index + 2.0);
+                if (((int32_t)index)<0){index+= inlength;}
+                if (((int32_t)index)>=inlength){index-=(MYFLT)inlength;}
+                x0 = (int32_t)(index-1.0);
+                x1 = (int32_t) index;
+                x2 = (int32_t)(index +1.0);
+                x3 = (int32_t)(index + 2.0);
                 if (x0<0){x0+= inlength;}
                 if (x2>=inlength){x2-= inlength;}
                 if (x3>=inlength){x3-= inlength;}
@@ -595,8 +595,8 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
                 for (i=1; i<to_write; i++){
                         if ((jj%frequency)==0){
                             if ((jjj%transpose_freq)==0){
-                                k = transposed[j]->read_index - grain_length-to_write + (int)((float)i)/pitch_factor;
-                                if (k<0){k+=inlength;}//transposed[j]->index + (int)((float)i)/pitch_factor;
+                                k = transposed[j]->read_index - grain_length-to_write + (int32_t)((float)i)/pitch_factor;
+                                if (k<0){k+=inlength;}//transposed[j]->index + (int32_t)((float)i)/pitch_factor;
                                 //inlength should be the same as transposed length
                                 if (k>=inlength){k-=inlength;}
                                 kk=(data->disttab[data->disttab_index++]%data->curr_dist)+data->out->index;//read from dist-tab
@@ -731,7 +731,7 @@ void partikkel(float*input, float*output, void* data_st, const short* attr, cons
         in->index+=to_write;
         if(in->index>=inlength){in->index -= inlength;}
         for (i=0; i<num_chans; i++){
-            transposed[i]->index += (int)(((float)to_write)/pitch_factor);
+            transposed[i]->index += (int32_t)(((float)to_write)/pitch_factor);
             if (transposed[i]->index>=inlength){transposed[i]->index-=inlength;}
         }
     }
@@ -772,14 +772,14 @@ void* init_reson(BSOUND* bsound, USR_IN type){
     data = (RESON_OPS *) calloc(sizeof(RESON_OPS), 1);
     if (data == NULL)
         return NULL;
-    int i, padding = 200;
-    int linelengths[12];
+    int32_t i, padding = 200;
+    int32_t linelengths[12];
     double semitone_ratio;
     MYFLT lp_cutoff = bsound->sample_rate/2.0;
     switch (type) {
         case REVERB:
             data->num_lines = 8;
-            int sean_carrol[]={2473, 2767, 3217, 3557, 3907, 4127, 2143, 1933}; //these lengths are "adapted" from sean carroll
+            int32_t sean_carrol[]={2473, 2767, 3217, 3557, 3907, 4127, 2143, 1933}; //these lengths are "adapted" from sean carroll
             for(i=0; i<8; i++) {linelengths[i]=sean_carrol[i];}
             data->fdbk = 0.5;//0.95f;
             data->output_scaling = 0.44;//0.18f;
@@ -841,7 +841,7 @@ void* init_reson(BSOUND* bsound, USR_IN type){
 }
 void dealloc_reson(BSOUND* bsound, void* data_st){
     RESON_OPS* data = (RESON_OPS*) data_st;
-    int i;
+    int32_t i;
     for (i=0; i<data->num_lines; i++){
     dealloc_delay_line(data->resonator[i], bsound);
     }
@@ -858,7 +858,7 @@ void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* dat
     MYFLT max_delay     = (MYFLT) line->length;
     MYFLT rand_max      = max_delay-current_delay<100?max_delay-current_delay :100;
     MYFLT rand_min      = current_delay-100<0?0                               :-100;
-    int linseg_x        = rand_int(data->random_speed * 0.9, data->random_speed * 1.1); //k-cycles
+    int32_t linseg_x        = rand_int(data->random_speed * 0.9, data->random_speed * 1.1); //k-cycles
     MYFLT linseg_y      = rand_float(rand_min, rand_max);
     if (data->random_speed == -1){
         line->read_incr = 1.0;
@@ -869,22 +869,22 @@ void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* dat
     line->linseg_rmns = linseg_x;
     }
 }
-void reson(float *input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
+void reson(float *input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     RESON_OPS* data = (RESON_OPS*) data_st;
     RNGBUF* in = data->in;
     RNGBUF* out = data->out;
     MYFLT output_scaling = data->output_scaling * pow(10.0, attr[3]/20.0);
-    short num_chans = bsound->num_chans;
-    long frameCount = bsound->bufsize;
+    int16_t num_chans = bsound->num_chans;
+    int64_t frameCount = bsound->bufsize;
     MYFLT *inch, *outch;
     MYFLT *line, fdbk, dampfactor = data->lp_damp;
     MYFLT y0;
     //interpolation
-    int x0, x1, x2, x3;
+    int32_t x0, x1, x2, x3;
     MYFLT f0, f1, f2, f3, int_indx, interpolated, x;
     //reading indices
-    int i, ii, j,jj, k, kk;
-    int inlength = in->length, line_length;
+    int32_t i, ii, j,jj, k, kk;
+    int32_t inlength = in->length, line_length;
     data->lp_freq = (attr[1]/100.0)*10000;
     fdbk=data->fdbk = (attr[0]/100.0);
     if (data->num_lines == 12){
@@ -894,7 +894,7 @@ void reson(float *input, float* output, void* data_st, const short* attr, const 
        output_scaling = data->output_scaling = 0.7289-0.5778*data->fdbk;
     }
     if (attr[2]){
-    data->random_speed = (int)( MAX_RANDOMIZE_SPEED / 5* ((100.0-attr[2])/100.0))+15;
+    data->random_speed = (int32_t)( MAX_RANDOMIZE_SPEED / 5* ((100.0-attr[2])/100.0))+15;
     data->random_speed *= 128.0;
     data->random_speed /= bsound->bufsize;
     }
@@ -942,11 +942,11 @@ void reson(float *input, float* output, void* data_st, const short* attr, const 
             line[kk]=inch[ii];
             //read value with interpolation
             int_indx += data->resonator[j]->read_incr;
-            if (((int)int_indx)>=line_length ){int_indx-=(MYFLT)line_length;}
-            x0 = (int)(int_indx - 1.0);
-            x1 = (int) int_indx;
-            x2 = (int)(int_indx + 1.0);
-            x3 = (int)(int_indx + 2.0);
+            if (((int32_t)int_indx)>=line_length ){int_indx-=(MYFLT)line_length;}
+            x0 = (int32_t)(int_indx - 1.0);
+            x1 = (int32_t) int_indx;
+            x2 = (int32_t)(int_indx + 1.0);
+            x3 = (int32_t)(int_indx + 2.0);
             if (x0<0){x0+= line_length;}
             if (x2>=line_length){x2-= line_length;}
             if (x3>=line_length){x3-= line_length;}
@@ -997,7 +997,7 @@ void reson(float *input, float* output, void* data_st, const short* attr, const 
     }
     out->index = k;
 }
-void* init_allpass(BSOUND* bsound, int buf_length){
+void* init_allpass(BSOUND* bsound, int32_t buf_length){
     ALLPASS_OPS* data = (ALLPASS_OPS*)malloc(sizeof(ALLPASS_OPS));
     data->aux = alloc_rngbuf(bsound, buf_length);
     return data;
@@ -1008,9 +1008,9 @@ void dealloc_allpass(BSOUND* bsound, void* data){
     free(data_st);
 }
 void allpass(RNGBUF* buf, const MYFLT feedback, ALLPASS_OPS* data, const BSOUND* bsound){
-    int i, ii, j, k, frame_count = bsound->bufsize, inlength, auxlength;
+    int32_t i, ii, j, k, frame_count = bsound->bufsize, inlength, auxlength;
     MYFLT* inch, *aux;
-    short num_chans = bsound->num_chans;
+    int16_t num_chans = bsound->num_chans;
     for (j=0; j<num_chans; j++){
         inch = buf->value[j];
         aux = data->aux->value[j];
@@ -1032,7 +1032,7 @@ void allpass(RNGBUF* buf, const MYFLT feedback, ALLPASS_OPS* data, const BSOUND*
 ///@todo add bias control to moddemod
 void* init_moddemod(BSOUND* bsound, USR_IN type){
     MODDEMOD_OPS* data = (MODDEMOD_OPS*) malloc(sizeof(MODDEMOD_OPS));
-    int i;
+    int32_t i;
     data->tab_length = 16384; //magic numbers FTW
     data->modulator = (MYFLT *)malloc(sizeof(MYFLT)*data->tab_length);
     MYFLT incr = MY_2_PI/data->tab_length;
@@ -1067,14 +1067,14 @@ void dealloc_moddemod(BSOUND* bsound, void* data){
     free(data_st->modulator);
     free(data_st);
 }
-void moddemod(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
+void moddemod(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     MODDEMOD_OPS* data = (MODDEMOD_OPS *) data_st;
-    int j, i, ii, frameCount = bsound->bufsize;
-    short num_chans = bsound->num_chans;
-    int tab_length = data->tab_length;
+    int32_t j, i, ii, frameCount = bsound->bufsize;
+    int16_t num_chans = bsound->num_chans;
+    int32_t tab_length = data->tab_length;
     MYFLT current_index = data->index, x;
     MYFLT volume = pow(10.0, attr[5]/20.0);
-    int x0, x1, x2, x3;
+    int32_t x0, x1, x2, x3;
     MYFLT f0, f1, f2, f3, interpolated;
     MYFLT y0, dampfactor = bsound->hi_damp, samp;
     data->freq = 2.5+ 1000.0*(pow((attr[0]/100.0), 3.0));
@@ -1109,14 +1109,14 @@ void moddemod(float* input, float* output, void* data_st, const short* attr, con
         for (i=0; i<frameCount; i++){
             current_index +=read_incr;
             mod_index +=mod_incr;
-            if (((int)mod_index)>=tab_length){mod_index-=(MYFLT)tab_length;}
-            current_index += attr[2]*modulator[(int)mod_index];
-            if (((int)current_index)>=tab_length){current_index-=(MYFLT)tab_length;}
-            if (((int)current_index)<0){current_index+=(MYFLT)tab_length;}
-                x0 = (int)(current_index - 1.0);
-                x1 = (int) current_index;
-                x2 = (int)(current_index + 1.0);
-                x3 = (int)(current_index + 2.0);
+            if (((int32_t)mod_index)>=tab_length){mod_index-=(MYFLT)tab_length;}
+            current_index += attr[2]*modulator[(int32_t)mod_index];
+            if (((int32_t)current_index)>=tab_length){current_index-=(MYFLT)tab_length;}
+            if (((int32_t)current_index)<0){current_index+=(MYFLT)tab_length;}
+                x0 = (int32_t)(current_index - 1.0);
+                x1 = (int32_t) current_index;
+                x2 = (int32_t)(current_index + 1.0);
+                x3 = (int32_t)(current_index + 2.0);
                 if (x0<0){x0+=tab_length;}
                 if (x2>=tab_length){x2-=tab_length;}
                 if (x3>=tab_length){x3-=tab_length;}
@@ -1139,7 +1139,7 @@ void moddemod(float* input, float* output, void* data_st, const short* attr, con
 }
 void* init_crush(BSOUND* bsound, USR_IN type){
     CRUSH_OPS* data = (CRUSH_OPS*)malloc(sizeof(CRUSH_OPS));
-    int i;
+    int32_t i;
     data->read_factor = 0.15;
     data->interpolate = 1;
     data->tab_length = bsound->bufsize*4;
@@ -1157,8 +1157,8 @@ void* init_crush(BSOUND* bsound, USR_IN type){
     damp_factor = damp_factor-sqrt(damp_factor*damp_factor-1.0);
     data->damp_factor = damp_factor;
     data->prv_y0_hipass = (MYFLT*)calloc(sizeof(MYFLT)*bsound->num_chans, 1);
-    data->in_read = (bsound->bufsize -2)-((1.0/data->read_factor)*((int)bsound->bufsize*data->read_factor));
-    data->samp_read = (bsound->bufsize -2)-(data->read_factor*((int)bsound->bufsize/data->read_factor));
+    data->in_read = (bsound->bufsize -2)-((1.0/data->read_factor)*((int32_t)bsound->bufsize*data->read_factor));
+    data->samp_read = (bsound->bufsize -2)-(data->read_factor*((int32_t)bsound->bufsize/data->read_factor));
 
     return (void*)data;
 }
@@ -1171,26 +1171,26 @@ void* init_crush(BSOUND* bsound, USR_IN type){
 float signum(float in){
     return (in > 0) ? 1 : ((in < 0) ? -1 : 0);
 }
-void crush(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
+void crush(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     CRUSH_OPS* data = (CRUSH_OPS*) data_st;
     //if we're not interpolating quantize
     if (attr[1])
         data->read_factor = attr_to_freq_conv(attr[0]) / bsound->sample_rate;
     else{
         data->read_factor = attr_to_freq_conv(attr[0]) / bsound->sample_rate;
-        data->read_factor = 1.0/((int)(1.0/data->read_factor));
+        data->read_factor = 1.0/((int32_t)(1.0/data->read_factor));
     }
     data->lp_freq = attr_to_freq_conv(attr[2]);
     MYFLT read_factor =  1.0f / data->read_factor;
     MYFLT volume = pow(10.0, attr[4]/20.0);
     MYFLT* in_tab;
     MYFLT** samp_reduced = data->samp_reduced;
-    int x0, x1, x2, x3;
+    int32_t x0, x1, x2, x3;
     MYFLT f0, f1, f2, f3, x, index;
     MYFLT samp, y0, damp_factor = data->damp_factor;
-    short num_chans = bsound->num_chans;
-    int i, ii, j, jj, tab_length = data->tab_length;
-    long frameCount = bsound->bufsize;
+    int16_t num_chans = bsound->num_chans;
+    int32_t i, ii, j, jj, tab_length = data->tab_length;
+    int64_t frameCount = bsound->bufsize;
     if (data->lp_freq != data->prv_lp_freq){
         damp_factor = 2.0-cos(data->lp_freq*MY_2_PI/bsound->sample_rate);
         damp_factor = damp_factor-sqrt(damp_factor*damp_factor-1.0);
@@ -1201,12 +1201,12 @@ void crush(float* input, float* output, void* data_st, const short* attr, const 
     if (attr[3]){
         frameCount= bsound->bufsize*bsound->num_chans;
         // max_val converts attr[3] and scales it
-        int val; float max_val = (10.0 - attr[3]) / 9.0;
+        int32_t val; float max_val = (10.0 - attr[3]) / 9.0;
         max_val = 32.0 + max_val * max_val *max_val *max_val* 8160;
         double mu_denominator = log(1+255), one_by_mu = 1.0/255.0;
         for (i=0; i<frameCount; i++){
             input[i]= signum(input[i])*log(1+255*fabsf(input[i]))/mu_denominator;
-            val = (int) (max_val * input[i]);
+            val = (int32_t) (max_val * input[i]);
             input[i]= ((float)val)/max_val;
             input[i]=signum(input[i])*one_by_mu*(pow(266, fabsf(input[i])) -1);
         }
@@ -1235,8 +1235,8 @@ void crush(float* input, float* output, void* data_st, const short* attr, const 
     for (j=0; j<num_chans;j++){
                 // read in input-buffer
         index = data->in_read;
-        if ((int)index < 0){index += (MYFLT)tab_length;}
-        if ((int)index > tab_length){index -=tab_length;}
+        if ((int32_t)index < 0){index += (MYFLT)tab_length;}
+        if ((int32_t)index > tab_length){index -=tab_length;}
         in_tab = data->in_buffer[j];
         //write index in SR-reduced buffer
         ii =data->samp_index;
@@ -1245,13 +1245,13 @@ void crush(float* input, float* output, void* data_st, const short* attr, const 
         read_factor = (MYFLT) bsound->bufsize/frameCount;
         for (i= 0; i<frameCount; i++){
             index += read_factor ;
-            if ((int)index >= tab_length){index -= tab_length;}
-            x0 = (int) index -1.0;
+            if ((int32_t)index >= tab_length){index -= tab_length;}
+            x0 = (int32_t) index -1.0;
             if (x0<0){x0+= tab_length;}
-            x1 = (int) index ;
-            x2 = (int) index + 1.0;
+            x1 = (int32_t) index ;
+            x2 = (int32_t) index + 1.0;
             if (x2>=tab_length){x2-=tab_length;}
-            x3 = (int) index + 2.0;
+            x3 = (int32_t) index + 2.0;
             if (x3>=tab_length){x3-=tab_length;}
             f0 = in_tab[x0];
             f1 = in_tab[x1];
@@ -1287,8 +1287,8 @@ void crush(float* input, float* output, void* data_st, const short* attr, const 
     for (j=0; j<num_chans;j++){
         frameCount = bsound->bufsize * data->read_factor; //length of samp_reduced buffer
         index  = data->samp_read;
-        if ((int)index < 0){index += (MYFLT)tab_length;}
-        if ((int)index >tab_length){index-= tab_length;}
+        if ((int32_t)index < 0){index += (MYFLT)tab_length;}
+        if ((int32_t)index >tab_length){index-= tab_length;}
         in_tab = data->samp_reduced[j];
         read_factor = (MYFLT) frameCount/bsound->bufsize;
         frameCount = bsound->bufsize;
@@ -1296,13 +1296,13 @@ void crush(float* input, float* output, void* data_st, const short* attr, const 
         MYFLT y1 = data->prv_y0_hipass[j], damp_factor = bsound->hi_damp;
         for (i= 0; i<frameCount ; i++){
             index += read_factor;
-            if ((int)index >= tab_length){index -= tab_length;}
-            x0 = (int) index -1.0;
+            if ((int32_t)index >= tab_length){index -= tab_length;}
+            x0 = (int32_t) index -1.0;
             if (x0<0){x0+= tab_length;}
-            x1 = (int) index ;
-            x2 = (int) index + 1.0;
+            x1 = (int32_t) index ;
+            x2 = (int32_t) index + 1.0;
             if (x2>=tab_length){x2-=tab_length;}
-            x3 = (int) index + 2.0;
+            x3 = (int32_t) index + 2.0;
             if (x3>=tab_length){x3-=tab_length;}
             f0 = in_tab[x0];
             f1 = in_tab[x1];
@@ -1327,7 +1327,7 @@ void crush(float* input, float* output, void* data_st, const short* attr, const 
 }
 void* init_bbd(BSOUND* bsound, USR_IN type){
     BBD_OPS* data = (BBD_OPS*)malloc(sizeof(BBD_OPS));
-    int i;
+    int32_t i;
     data->read_factor = 0.15;
     data->interpolate = 1;
     data->tab_length = bsound->sample_rate;
@@ -1345,7 +1345,7 @@ void* init_bbd(BSOUND* bsound, USR_IN type){
     damp_factor = damp_factor-sqrt(damp_factor*damp_factor-1.0);
     data->damp_factor = damp_factor;
     data->prv_y0_hipass = (MYFLT*)calloc(sizeof(MYFLT)*bsound->num_chans, 1);
-    data->in_read = (bsound->bufsize -2)-((1.0/data->read_factor)*((int)bsound->bufsize*data->read_factor));
+    data->in_read = (bsound->bufsize -2)-((1.0/data->read_factor)*((int32_t)bsound->bufsize*data->read_factor));
     data->samp_read = (bsound->bufsize) * 3;
     data->aux = alloc_rngbuf(bsound, bsound->bufsize * 2);
     data->mod_tab_length = 1200; //magic numbers FTW
@@ -1365,7 +1365,7 @@ void dealloc_bbd(BSOUND* bsound, void* data){
     dealloc_rngbuf(data_st->aux, bsound);
     free(data_st);
 }
-void bbd(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
+void bbd(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     BBD_OPS* data = (BBD_OPS*) data_st;
     MYFLT mod_amount = (MYFLT)attr[3]/500.0;
     data->mod_index+= attr[4]; if (data->mod_index>=data->mod_tab_length){data->mod_index -= data->mod_tab_length;}
@@ -1377,14 +1377,14 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
     MYFLT* aux;
     int auxlength = data->aux->length;
     MYFLT* in_tab;
+    int32_t x0, x1, x2, x3;
     MYFLT* samp_reduced;
-    int x0, x1, x2, x3;
     MYFLT f0, f1, f2, f3, x, index;
     MYFLT feedback = attr[1]/100.0;
     MYFLT samp, y0, damp_factor = data->damp_factor;
-    short num_chans = bsound->num_chans;
-    int i, ii, j, jj, k, tab_length = data->tab_length;
-    long frameCount = bsound->bufsize;
+    int16_t num_chans = bsound->num_chans;
+    int32_t i, ii, j, jj, k, tab_length = data->tab_length;
+    int64_t frameCount = bsound->bufsize;
     data->lp_freq = attr_to_freq_conv(attr[2]);
     if (data->lp_freq != data->prv_lp_freq){
         damp_factor = 2.0-cos(data->lp_freq*MY_2_PI/bsound->sample_rate);
@@ -1420,8 +1420,8 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
     for (j=0; j<num_chans;j++){
                 // read in input-buffer
         index = data->in_read;
-        if ((int)index < 0){index += (MYFLT)tab_length;}
-        if ((int)index > tab_length){index -=tab_length;}
+        if ((int32_t)index < 0){index += (MYFLT)tab_length;}
+        if ((int32_t)index > tab_length){index -=tab_length;}
         in_tab = data->in_buffer[j];
         //write index in SR-reduced buffer
         ii =data->samp_index;
@@ -1432,13 +1432,13 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
         samp_reduced = data->samp_reduced[j];
         for (i= 0; i<frameCount; i++){
             index += read_factor ;
-            if ((int)index >= tab_length){index -= tab_length;}
-            x0 = (int) index -1.0;
+            if ((int32_t)index >= tab_length){index -= tab_length;}
+            x0 = (int32_t) index -1.0;
             if (x0<0){x0+= tab_length;}
-            x1 = (int) index ;
-            x2 = (int) index + 1.0;
+            x1 = (int32_t) index ;
+            x2 = (int32_t) index + 1.0;
             if (x2>=tab_length){x2-=tab_length;}
-            x3 = (int) index + 2.0;
+            x3 = (int32_t) index + 2.0;
             if (x3>=tab_length){x3-=tab_length;}
             f0 = in_tab[x0];
             f1 = in_tab[x1];
@@ -1472,8 +1472,8 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
     for (j=0; j<num_chans;j++){
         frameCount = bsound->bufsize * data->read_factor; //length of samp_reduced buffer
         index  = data->samp_read;
-        if ((int)index < 0){index += (MYFLT)tab_length;}
-        if ((int)index >tab_length){index-= tab_length;}
+        if ((int32_t)index < 0){index += (MYFLT)tab_length;}
+        if ((int32_t)index >tab_length){index-= tab_length;}
         in_tab = data->samp_reduced[j];
         read_factor = (MYFLT) frameCount/bsound->bufsize;
         frameCount = bsound->bufsize;
@@ -1484,13 +1484,13 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
         MYFLT samp2;
         for (i= 0; i<frameCount ; i++){
             index += read_factor;
-            if ((int)index >= tab_length){index -= tab_length;}
-            x0 = (int) index -1.0;
+            if ((int32_t)index >= tab_length){index -= tab_length;}
+            x0 = (int32_t) index -1.0;
             if (x0<0){x0+= tab_length;}
-            x1 = (int) index ;
-            x2 = (int) index + 1.0;
+            x1 = (int32_t) index ;
+            x2 = (int32_t) index + 1.0;
             if (x2>=tab_length){x2-=tab_length;}
-            x3 = (int) index + 2.0;
+            x3 = (int32_t) index + 2.0;
             if (x3>=tab_length){x3-=tab_length;}
             f0 = in_tab[x0];
             f1 = in_tab[x1];
@@ -1530,7 +1530,7 @@ void* init_reseq(BSOUND* bsound, USR_IN type){
     data->xmem2         = malloc(sizeof(MYFLT)*bsound->num_chans);
     data->ymem1         = malloc(sizeof(MYFLT)*bsound->num_chans);
     data->ymem2         = malloc(sizeof(MYFLT)*bsound->num_chans);
-    int i, j;
+    int32_t i, j;
     for (i=0; i<bsound->num_chans; i++){
         data->peak[i]          = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
         data->bandwidth[i]     = (MYFLT*) malloc(sizeof(MYFLT)*data->num_bands);
@@ -1591,7 +1591,7 @@ void dealloc_reseq(BSOUND* bsound, void* data){
     free(data_st);
 }
 void recalculate_coefficients(RESEQ_OPS* data, const BSOUND* bsound){
-    int i, j;
+    int32_t i, j;
     for (i=0; i<bsound->num_chans; i++){
         for (j=0; j<data->num_bands; j++){
             MYFLT A, omega, c, s, alpha;
@@ -1615,10 +1615,10 @@ void recalculate_coefficients(RESEQ_OPS* data, const BSOUND* bsound){
         }
     }
 }
-void reseq(float* input, float* output, void* data_st, const short* attr, const BSOUND* bsound){
+void reseq(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     RESEQ_OPS* data = (RESEQ_OPS*)data_st;
     ///here we would check whether something has changed and update accordingly
-    int i, j, k = 0;
+    int32_t i, j, k = 0;
     if (attr[0]!=data->gain[0][0]){
         for (i=0; i<bsound->num_chans; i++){
             for (j=0; j<data->num_bands; j++)
@@ -1646,9 +1646,9 @@ void reseq(float* input, float* output, void* data_st, const short* attr, const 
         data->gain[0][9] = attr[2]*0.5;
         recalculate_coefficients(data, bsound);
     }
-    short numChans = bsound->num_chans;
-    int numBands = data->num_bands;
-    long numSamps = bsound->num_chans* bsound->bufsize;
+    int16_t numChans = bsound->num_chans;
+    int32_t numBands = data->num_bands;
+    int64_t numSamps = bsound->num_chans* bsound->bufsize;
     MYFLT xmem1, xmem2, ymem1, ymem2;
     MYFLT b0, b1, b2, a1, a2;
     MYFLT *buffer = data->buffer;

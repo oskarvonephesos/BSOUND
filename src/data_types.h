@@ -22,22 +22,22 @@
 #include "globaltypes.h"
 typedef struct {
     MYFLT** value;
-    int length;
-    int index;
-    int available;
+    int32_t length;
+    int32_t index;
+    int32_t available;
 } RNGBUF;
 typedef struct {
     MYFLT * value;
-    int length;
-    int index;
+    int32_t length;
+    int32_t index;
     MYFLT read_index;
     MYFLT read_incr;
     MYFLT prv_y0;
-    int linseg_rmns;
+    int32_t linseg_rmns;
 } DELAY_LINE;
-RNGBUF* alloc_rngbuf(BSOUND * bsound, int length);
+RNGBUF* alloc_rngbuf(BSOUND * bsound, int32_t length);
 void dealloc_rngbuf(RNGBUF* buffer, BSOUND* bsound);
-DELAY_LINE* alloc_delay_line(BSOUND* bsound, int length);
+DELAY_LINE* alloc_delay_line(BSOUND* bsound, int32_t length);
 void dealloc_delay_line(DELAY_LINE* line, BSOUND* bsound);
 #ifndef _STDLIB
 #define _STDLIB
