@@ -1349,6 +1349,7 @@ void* init_bbd(BSOUND* bsound, USR_IN type){
     data->samp_read = (bsound->bufsize) * 3;
     data->aux = alloc_rngbuf(bsound, bsound->bufsize * 2);
     data->mod_tab_length = 1200; //magic numbers FTW
+    data->mod_index = 0;
     data->modulator = (MYFLT *)malloc(sizeof(MYFLT)*data->mod_tab_length);
     MYFLT incr = MY_2_PI/data->mod_tab_length;
     for (i=0; i<data->mod_tab_length; i++){
@@ -1372,6 +1373,7 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
     data->read_factor = attr[0]/100.0 ;
     data->read_factor += mod_amount;
     MYFLT read_factor =  1.0f / data->read_factor;
+    MYFLT volume = pow(10.0, attr[5]/20.0);
     MYFLT* aux;
     int auxlength = data->aux->length;
     MYFLT* in_tab;
@@ -1477,6 +1479,7 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
         k = data->aux->index;
         aux = data->aux->value[j];
         MYFLT y1 = data->prv_y0_hipass[j], damp_factor = bsound->hi_damp;
+        MYFLT samp2;
         for (i= 0; i<frameCount ; i++){
             index += read_factor;
             if ((int)index >= tab_length){index -= tab_length;}
@@ -1493,11 +1496,11 @@ void bbd(float* input, float* output, void* data_st, const short* attr, const BS
             f3 = in_tab[x3];
             x = index - x1;
             samp= f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
-            output[ii]=samp;
-            output[ii]=(y1+output[ii])*damp_factor;
-            aux[k++] = output[ii];
+            samp2=samp;
+            samp2=(y1+samp2)*damp_factor;
+            aux[k++] = output[ii] = samp2 * volume;
             if (k>= auxlength){k = 0;}
-            y1 = output[ii]-samp;
+            y1 = samp2-samp;
             ii += num_chans;
         }
         data->prv_y0_hipass[j]=y1;
