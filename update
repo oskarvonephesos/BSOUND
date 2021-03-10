@@ -1,0 +1,21 @@
+if test -e /opt/homebrew #is homebrew installed?
+      then
+git pull
+make
+elif test -e /usr/local/Homebrew #alternative location
+      then
+git pull
+make
+else
+echo #############################################################
+echo #############################################################
+echo Please consider installing Homebrew and rerunning ./update.
+echo "BSOUND will work with out it, but it cannot perform updates"
+echo "i.e. check out https://brew.sh/"
+echo #############################################################
+echo "(If Homebrew is installed, but for some reason I haven't found it)"
+echo "(Please run git pull && make)"
+echo #############################################################
+echo #############################################################
+make
+fi;
