@@ -30,4 +30,5 @@ then
 make
 else
 xcode-select --install
+make
 fi
