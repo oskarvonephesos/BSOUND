@@ -15,7 +15,12 @@ At it's core, BSOUND is a very simple application. It takes in audio from your d
 
 on MAC OS X
 
-In terminal, navigate to the downloaded directory, type 'make && make clean' and if no errors come up, start up BSOUND. This expects some frameworks to be in their system default locations (which maybe isn't a good idea) and so on and so forth, but it's worth a shot (and the makefile is so short, I'm sure you can edit it to your heart's content). If you're missing many frameworks, try downloading XCode CommandLineTools (and changing the appropriate paths in the makefile).
+If you are not a developer:
+
+Download the code and run install. It will check for CommandLineTools and guide you through their installation if necessary. If an executable called bsound does not appear, re-run install.
+
+Else:
+In terminal, navigate to the downloaded directory, and run the usual 'make && make clean' and if no errors come up, start up BSOUND. This expects some frameworks to be in their system default locations (which maybe isn't a good idea) and so on and so forth, but the makefile is pretty short, so editing it shouldn't prove too difficult either.
 
 If you prefer portaudio's blocking interface over the (default) callback option, comment out -DUSE_CALLBACK from the CFLAGS in the makefile.
 
