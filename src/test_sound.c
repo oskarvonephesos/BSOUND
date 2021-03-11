@@ -315,7 +315,11 @@ int main(int argc, const char * argv[]) {
     insert_op(bsound, usr_in);
     int j = 0;
     FILE *fout;
+    #ifndef MAXIM_TEST
     int64_t loc_length = strlen(argv[0]) - 6;
+    #else
+    int64_t loc_length = strlen(argv[0]) - 10;
+    #endif
     char* write_out_loc = (char*)malloc(sizeof(char)* (loc_length + 16));
     memset(write_out_loc, '\0', loc_length + 16);
     memcpy(write_out_loc, argv[0], loc_length);
@@ -330,7 +334,6 @@ int main(int argc, const char * argv[]) {
             write_out(sampleout, bsound, fout);
             j++;
                 }
-                save_to_log(argv[0], bsound);
                 //pthread_join(input_handling, NULL);
                 free(samplein);free(sampleout);free(temp1); free(temp2);
                 //deallocate resources!!!
