@@ -20,6 +20,8 @@
 #include "data_types.h"
 #include "programm_state.h"
 RNGBUF* alloc_rngbuf( BSOUND* bsound, int32_t length){
+    if (length <= 0)
+        return NULL;
     int16_t num_chans = bsound->num_chans;
     RNGBUF* buffer = (RNGBUF *) malloc(sizeof(RNGBUF));
     if (buffer == NULL)
@@ -49,6 +51,8 @@ void dealloc_rngbuf(RNGBUF* buffer, BSOUND* bsound){
 
 }
 DELAY_LINE* alloc_delay_line(BSOUND* bsound, int32_t length){
+    if (length <= 0)
+        return NULL;
     DELAY_LINE* line = (DELAY_LINE*) malloc(sizeof(DELAY_LINE));
     if (line == NULL)
         return NULL;

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <curses.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <stdbool.h>
 #define IN_SIZE 7
@@ -531,8 +532,10 @@ void* input_handler(void* in){
                         }
                     }
                     else {
+                        if (isalpha(single_char) || single_char == ' '){
                         line[i++]=single_char;
                         chars_entered = 0;
+                        }
                     }
                             int32_t j;
                     for (j=0; j<i; j++){
@@ -552,6 +555,11 @@ void* input_handler(void* in){
                 }
                 if (usr_in->type == DELETE){
                     //erase, then draw chain
+                    if (bsound->num_ops == 0){
+                          usr_in->type = ERROR;
+                          refresh_flag = 1;
+                          continue;
+                    }
                     erase(); display_stack(bsound, max_x, max_y);
                     mvprintw(info_loc[0], info_loc[1], "choose item to be deleted and hit enter");
                     move(cursor->y, cursor->x + offset);
@@ -821,6 +829,7 @@ int32_t insert_op(BSOUND* bsound, COMMAND* command){
     }
 }
 void delete_item(BSOUND* bsound, OP_STACK* cursor){
+    if (bsound->num_ops>0){
     if (bsound->num_ops == 1){
         bsound->num_ops--;
         bsound->head->dealloc(bsound, bsound->head->func_st);
@@ -841,6 +850,7 @@ void delete_item(BSOUND* bsound, OP_STACK* cursor){
         cursor->dealloc(bsound, cursor->func_st);
         //cursor = bsound->head;
     }
+}
 }
 OP_STACK* load_st(BSOUND* bsound, int16_t* print_loc){
     erase();
@@ -1090,8 +1100,7 @@ void display_preferences_menu(BSOUND* bsound, int16_t* print_loc){
                     refresh(); if (bsound->requested_bufsize < 2048)
                         bsound->requested_bufsize *= 2;
                     else
-                        bsound->requested_bufsize = 64;
-                        bsound->pause_flag = 1; sleep(1);
+                        bsound->requested_bufsize = 64; sleep(1);
                     mvprintw(print_loc[0]+2, print_loc[1], "PRESS ANY KEY TO CONTINUE");
                      getch();
 
