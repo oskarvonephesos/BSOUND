@@ -19,8 +19,8 @@ LIBS = -framework CoreAudio -framework AudioToolbox -framework AudioUnit\
 	-framework CoreFoundation -framework CoreServices
 bsound: $(SRC) $(PORTSRC)
 	$(CC) $(CFLAGS) -o bsound $(SRC) $(PORTSRC) -lcurses  $(LIBS)
-test: $(TEST_SRC)
-	$(CC) $(CFLAGS) -o test $(TEST_SRC) -lcurses
+test: $(TEST_SRC) $(PORTSRC)
+	$(CC) $(CFLAGS) -o test $(TEST_SRC) $(PORTSRC) -lcurses $(LIBS)
 ##this is very ugly. there has to be a more elegant way of solving this
 $(SRC): $(SRCDIR)globaltypes.h
 $(SRCDIR)data_types.o: $(SRCDIR)data_types.c $(SRCDIR)data_types.h
