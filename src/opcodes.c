@@ -170,7 +170,7 @@ void* init_delay(BSOUND* bsound, USR_IN type){
             break;
     }
     //calculate filter coefficient
-    for (i=0; i<delay_struct->num_taps; i++)
+    for (i=0; i<num_chans; i++)
         delay_struct->current_weighting[i]=(MYFLT*)malloc(sizeof(MYFLT)*delay_struct->num_taps);
     lp_damp                   = 2.0-cos(delay_struct->lp_freq*MY_2_PI/bsound->sample_rate);
     lp_damp                   = lp_damp - sqrt(lp_damp*lp_damp - 1.0);
@@ -204,40 +204,40 @@ void dealloc_delay(BSOUND* bsound, void* data_st){
     dealloc_rngbuf(data->aux, bsound);
     free(data->delay_length);
 }
-void delay(float *input, float * output, void* data,const int16_t* attr, const BSOUND* bsound){
-    DELAY_OPS* delay = (DELAY_OPS*) data;
+void delay(float *input, float * output, void* data_st,const int16_t* attr, const BSOUND* bsound){
+    DELAY_OPS* data = (DELAY_OPS*) data_st;
     int32_t i, i2, ii, j, j1, k, num_chans;
     int64_t auxlength;
     int64_t frameCount    = bsound->bufsize;
-    DELAY_LINE ** line = delay->lines;
-    MYFLT** feedback   = delay->current_feedback;
-    MYFLT dampfactor   = delay->lp_damp, y0;
+    DELAY_LINE ** line = data->lines;
+    MYFLT** feedback   = data->current_feedback;
+    MYFLT dampfactor   = data->lp_damp, y0;
     MYFLT volume       = pow(10.0, attr[4]/20.0);
     MYFLT interpolated, interpolated2, f0, f1, f2, f3, x, read_index, read_index2, incr, incr2;
-    MYFLT* spacing = delay->current_spacing, **weighting = delay->current_weighting;
+    MYFLT* spacing = data->current_spacing, **weighting = data->current_weighting;
     int32_t x0, x1, x2, x3, line_length, line_length2;
     num_chans=bsound->num_chans;
-    RNGBUF* aux = delay->aux;
+    RNGBUF* aux = data->aux;
     auxlength=aux->length;
     k=aux->index;
     //update DELAY_OPS from stack
-    delay->lp_freq = attr_to_freq_conv(attr[2]);
+    data->lp_freq = attr_to_freq_conv(attr[2]);
     for (j= 0; j<num_chans; j++){
         for (i=0; i<num_chans; i++)
-        feedback[j][i] = delay->feedback[j][i] * ((MYFLT)attr[1]/100.0);
+        feedback[j][i] = data->feedback[j][i] * ((MYFLT)attr[1]/100.0);
     }
     //find largest weight
     int32_t largest_weight_x = 0; MYFLT my_largest_weight = 0.0;
     for (j=0; j<num_chans; j++){
-        for (i=0; i<delay->num_taps; i++){
-            if (delay->weighting[j][i] > my_largest_weight){
-                my_largest_weight = delay->weighting[j][i];
+        for (i=0; i<data->num_taps; i++){
+            if (data->weighting[j][i] > my_largest_weight){
+                my_largest_weight = data->weighting[j][i];
                 largest_weight_x=i;
         }
     }
     //as spread increases, increase small weights, decrease largest weight
-        for (i=0; i<delay->num_taps; i++){
-            weighting[j][i]= volume * delay->weighting[j][i] * ((MYFLT)attr[3]/100.0);
+        for (i=0; i<data->num_taps; i++){
+            weighting[j][i]= volume * data->weighting[j][i] * ((MYFLT)attr[3]/100.0);
         }
         weighting[j][largest_weight_x] =volume * ( 1 - (1 - my_largest_weight)*((MYFLT)attr[3]/100.0));
     }
@@ -247,7 +247,7 @@ void delay(float *input, float * output, void* data,const int16_t* attr, const B
            delay_time =  line[i]->index - line[i]->read_index ;
         else
             delay_time =  line[i]->length - line[i]->read_index + line[i]->index;
-        delay->current_spacing[i] = delay->spacing[i]*delay_time;
+        data->current_spacing[i] = data->spacing[i]*delay_time;
         if (((MYFLT)attr[0]/100.0)*line[i]->length != delay_time){
             delay_time -= ((MYFLT)attr[0]/100.0)*line[i]->length;
             if (delay_time<(-bsound->bufsize/32))
@@ -259,12 +259,12 @@ void delay(float *input, float * output, void* data,const int16_t* attr, const B
         else
             line[i]->read_incr = 1.0;
     }
-    if (delay->prv_lp_freq != delay->lp_freq){
-        dampfactor = 2.0-cos(delay->lp_freq*MY_2_PI/bsound->sample_rate);
+    if (data->prv_lp_freq != data->lp_freq){
+        dampfactor = 2.0-cos(data->lp_freq*MY_2_PI/bsound->sample_rate);
         dampfactor = dampfactor-sqrt(dampfactor*dampfactor - 1.0);
-        delay->lp_damp = dampfactor;
+        data->lp_damp = dampfactor;
     }
-    delay->prv_lp_freq = delay->lp_freq;
+    data->prv_lp_freq = data->lp_freq;
     for (j= 0; j<num_chans; j++){
         ii= j;
         j1 = (j+1)%num_chans;
@@ -322,12 +322,12 @@ void delay(float *input, float * output, void* data,const int16_t* attr, const B
         line[j]->read_index = read_index;
     }
     for (j = 0; j<num_chans; j++){
-        for (i=1; i<delay->num_taps; i++){
+        for (i=1; i<data->num_taps; i++){
             ii = j;
             incr = line[j]->read_incr;
             line_length = line[j]->length;
             read_index = line[j]->read_index - i*spacing[j] - (MYFLT)frameCount;
-            if (read_index < 0.0){read_index += (MYFLT) line_length;}
+            while (read_index < 0.0){read_index += (MYFLT) line_length;}
         for (k=0; k<frameCount; k++){
             read_index += incr;
             if (((int32_t)read_index)>=line_length ){read_index-=(MYFLT)line_length;}

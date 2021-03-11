@@ -555,6 +555,11 @@ void* input_handler(void* in){
                 }
                 if (usr_in->type == DELETE){
                     //erase, then draw chain
+                    if (bsound->num_ops == 0){
+                          usr_in->type = ERROR;
+                          refresh_flag = 1;
+                          continue;
+                    }
                     erase(); display_stack(bsound, max_x, max_y);
                     mvprintw(info_loc[0], info_loc[1], "choose item to be deleted and hit enter");
                     move(cursor->y, cursor->x + offset);
@@ -824,6 +829,7 @@ int32_t insert_op(BSOUND* bsound, COMMAND* command){
     }
 }
 void delete_item(BSOUND* bsound, OP_STACK* cursor){
+    if (bsound->num_ops>0){
     if (bsound->num_ops == 1){
         bsound->num_ops--;
         bsound->head->dealloc(bsound, bsound->head->func_st);
@@ -844,6 +850,7 @@ void delete_item(BSOUND* bsound, OP_STACK* cursor){
         cursor->dealloc(bsound, cursor->func_st);
         //cursor = bsound->head;
     }
+}
 }
 OP_STACK* load_st(BSOUND* bsound, int16_t* print_loc){
     erase();
