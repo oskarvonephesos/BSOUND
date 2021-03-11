@@ -490,6 +490,7 @@ void* input_handler(void* in){
                     if (single_int == 127/*backspace*/){
                         if (i>0){
                             instring[--i]=' ';
+                            chars_entered = 0;
                             erase();  int32_t j;
                             mvprintw(input_loc[0], input_loc[1], "INPUT: ");
                             mvprintw(info_loc[0], info_loc[1], "      OPCODES:\n \t\tdelay\t\ttape\t\tpingpong\tmultitap");

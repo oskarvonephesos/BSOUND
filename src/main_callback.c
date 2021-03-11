@@ -72,7 +72,7 @@ RECORD_INFO* r = (RECORD_INFO*) malloc(sizeof(RECORD_INFO));
     r->recordbuflength =bsound->sample_rate*20*bsound->num_chans;
     r->readhead = 0;
     r->crosses_zero = false;
-    r->is_crossfaded = true;
+    r->is_crossfaded = true; // this prevents function being called on init
     r->recordbuf = (float*) calloc(sizeof(float)*r->recordbuflength, 1);
     return r;
 }
@@ -256,6 +256,11 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
         }
         current_op = bsound->head;
     for (i= 0; i<bsound->num_ops;){
+             if (current_op->func == NULL){
+                   bsound->num_ops = i;
+                   //this is where i create some kind of remote error management
+                   break;
+             }
         current_op->func(temp1, temp2, current_op->func_st, current_op->attr , bsound);
         i++;
         if (i<bsound->num_ops){
@@ -272,6 +277,9 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
             temp1 = temp2;
             temp2 = temp;
         }
+        if (current_op->next_op == NULL && i < bsound->num_ops){
+             //this needs to be reported as well
+       }
         if (current_op->next_op != NULL)
             current_op = current_op->next_op;
     }
@@ -279,7 +287,7 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
         output[i]+=temp2[i];
     }
 }
-int32_t main(int32_t argc, const char * argv[]) {
+int main(int argc, const char * argv[]) {
     BSOUND * bsound = init_bsound();
     bsound->programm_loc = argv[0];
     OP_STACK* head = init_head();

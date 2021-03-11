@@ -31,6 +31,7 @@ $(SRCDIR)programm_state.o: $(SRCDIR)programm_state.c $(SRCDIR)programm_state.h
 $(SRCDIR)util_opcodes.o: $(SRCDIR)util_opcodes.c $(SRCDIR)util_opcodes.h
 $(SRCDIR)test_sound.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
 	$(SRCDIR)opcodes.h $(SRCDIR)programm_state.h $(SRCDIR)util_opcodes.h
+#not maintained
 $(SRCDIR)main_blocking_stack.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
 	$(SRCDIR)opcodes.h $(SRCDIR)programm_state.h $(SRCDIR)util_opcodes.h
 $(SRCDIR)main_callback.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
