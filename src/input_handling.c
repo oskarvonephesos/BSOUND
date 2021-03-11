@@ -1097,7 +1097,6 @@ void display_preferences_menu(BSOUND* bsound, int16_t* print_loc){
                     if (bsound->crossfade_looping){
                     erase();
                     mvprintw(print_loc[0], print_loc[1], "LOOP CROSSFADING ENABLED");
-                    mvprintw(print_loc[0]+1, print_loc[1], "BSOUND WILL APPLY CROSSFADING TO THE NEXT LOOP YOU RECORD");
                     mvprintw(print_loc[0]+3, print_loc[1], "PRESS ANY KEY TO CONTINUE");
                     refresh();
                     getch();

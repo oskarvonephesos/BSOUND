@@ -57,6 +57,7 @@ typedef struct {
     bool bypass_active;
     bool record_active;
     bool crosses_zero;
+    bool is_crossfaded;
     int32_t recordbuflength;
     int32_t recordstart;
     int32_t recordend;
@@ -99,6 +100,7 @@ void cross_fade_buffer(BSOUND* bsound, RECORD_INFO* r){
           r->recordzero = 0;
       else //recordstart != recordend, so this is recordstart<recordend
           r->recordzero = r->recordstart;
+          r->is_crossfaded = true;
 }
 void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r);
 void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float* temp1, float* temp2);
@@ -150,6 +152,7 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
             r->recordstart   = r->readhead;
             r->record_active = true;
             r->crosses_zero  = false;
+            r->is_crossfaded = false;
         }
         int32_t sampCount = bsound->bufsize * bsound->num_chans;
         int32_t rbuflength = r->recordbuflength;
@@ -209,7 +212,6 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
     }
 
     if (bsound->playback_flag){
-
         int32_t sampCount = bsound->bufsize * bsound->num_chans;
         int32_t rend       = r->recordend,
 
@@ -231,6 +233,8 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
         }
     }
     }
+    if(bsound->crossfade_looping && !r->is_crossfaded)
+    cross_fade_buffer(bsound, r);
     r->readhead = recordhead;
 }
 void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float* temp1, float* temp2){
