@@ -72,6 +72,7 @@ RECORD_INFO* r = (RECORD_INFO*) malloc(sizeof(RECORD_INFO));
     r->recordbuflength =bsound->sample_rate*20*bsound->num_chans;
     r->readhead = 0;
     r->crosses_zero = false;
+    r->is_crossfaded = true;
     r->recordbuf = (float*) calloc(sizeof(float)*r->recordbuflength, 1);
     return r;
 }
