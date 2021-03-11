@@ -110,7 +110,7 @@ struct attr_parse attr_types[NUM_OPTIONS]={
     {CLOUD, {"spread", "density", "grain length", "transpose", "volume", "skip", "reverse", "feedback"},
         {1,   1,   1,   1,   -60,       0,   0, 0},
         {100, 300, 100, 190,  12,       100, 1, 100},
-        {100, 260,  70,  100,  0,       0, 0, 0},
+        {100, 290,  70,  100,  0,       0, 1, 60},
         "sssidsss", 7},
     {SHIMMER, {"spread", "density", "grain length", "transpose", "volume", "skip", "reverse", "feedback"},
         {1,   1,   1,   1,   -60,       0,   0, 0},
@@ -444,7 +444,7 @@ void* input_handler(void* in){
                 move(cursor->y, cursor->x +offset);
                 refresh();
             }
-            if (single_int == KEY_UP){
+            if (single_int == KEY_UP && bsound->num_ops){
                 if(num_attr< attr_types[cursor->type].num_attr)
                     num_attr++;
                 mvprintw(cursor->y-5, cursor->x -2  +offset, "%s        ", attr_types[cursor->type].names[num_attr]);
@@ -454,7 +454,7 @@ void* input_handler(void* in){
                 move(cursor->y, cursor->x +offset); repeat_flag = 1;
                 refresh();
             }
-            if (single_int == KEY_DOWN){
+            if (single_int == KEY_DOWN && bsound->num_ops){
                 if(num_attr)
                     num_attr--;
                 mvprintw(cursor->y-5, cursor->x -2 +offset, "%s      ", attr_types[cursor->type].names[num_attr]);
@@ -564,6 +564,8 @@ void* input_handler(void* in){
                     while (bsound->num_ops>0){
                         delete_item(bsound, cursor);
                         cursor = bsound->head;
+                        while(cursor->next_op)
+                        cursor = cursor->next_op;
                     }
                     offset = max_x/2;
                     refresh_flag = 1; noecho(); continue;
@@ -829,8 +831,12 @@ void delete_item(BSOUND* bsound, OP_STACK* cursor){
             cursor->previous_op->next_op = cursor->next_op;
         else
             bsound->head = cursor->next_op;
-        if(cursor->next_op)
+        if(cursor->next_op){
+        if (cursor->previous_op)
         cursor->next_op->previous_op = cursor->previous_op;
+        else
+        cursor->next_op->previous_op = bsound->head;
+        }
         cursor->dealloc(bsound, cursor->func_st);
         //cursor = bsound->head;
     }
