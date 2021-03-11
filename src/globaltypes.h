@@ -53,6 +53,11 @@ typedef enum {
     ERROR = -2
 }USR_IN;
 #endif
+typedef enum {
+      BERROR_FUNCST_NULL,
+      BERROR_NEXT_OP_NULL,
+      BERROR_NUM_ERRORS
+}BERROR;
 typedef struct _BSOUND{
     int32_t num_ops;
     int32_t sample_rate;
@@ -72,6 +77,7 @@ typedef struct _BSOUND{
     int16_t out_chans;
     bool in_out_chanmatch;
     bool pause_flag;
+    bool restart_requested;
     bool bypass_flag;
     bool record_flag;
     bool playback_flag;
@@ -80,6 +86,7 @@ typedef struct _BSOUND{
     bool filter_bank_active;
     bool filter_bank_exists;
     PaStream* stream_handle;
+    BERROR* errors;
     } BSOUND;
 typedef struct _OP_STACK{
     //operator

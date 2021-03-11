@@ -51,11 +51,23 @@ void* init_delay(BSOUND* bsound, USR_IN type){
     MYFLT lp_damp;
 
     delay_struct->delay_length = (int32_t*)calloc(sizeof(int32_t)*num_chans, 1);
+    if (delay_struct->delay_length == NULL)
+      return NULL;
     delay_struct->feedback = calloc(sizeof(MYFLT*)*num_chans, 1);
+    if (delay_struct->feedback == NULL)
+      return NULL;
     delay_struct->current_feedback = calloc(sizeof(MYFLT*)*num_chans, 1);
+    if (delay_struct->current_feedback == NULL)
+      return NULL;
     delay_struct->weighting = calloc(sizeof(MYFLT*)*num_chans, 1);
+    if (delay_struct->weighting == NULL)
+      return NULL;
     delay_struct->current_weighting = calloc(sizeof(MYFLT*)*num_chans, 1);
+    if (delay_struct->current_weighting == NULL)
+      return NULL;
     delay_struct->current_spacing = (MYFLT*)malloc(sizeof(MYFLT)*num_chans);
+    if (delay_struct->current_spacing == NULL)
+      return NULL;
     for (i = 0; i<num_chans; i++){
         delay_struct->feedback[i]= (MYFLT*) calloc(sizeof(MYFLT)*num_chans, 1);
         delay_struct->current_feedback[i]= (MYFLT*)calloc(sizeof(MYFLT)*num_chans, 1);
@@ -172,7 +184,7 @@ for (i=0; i<num_chans; i++){
 delay_struct->aux = alloc_rngbuf(bsound, buf_length);
 if (delay_struct->aux == NULL){
     puts("error allocating delay struct\n");
-    exit (0);
+    return NULL;
 }
     delay_struct->lines = malloc(sizeof(DELAY_LINE*)*bsound->num_chans);
     for (i= 0; i<bsound->num_chans; i++){

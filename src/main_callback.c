@@ -258,7 +258,7 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
     for (i= 0; i<bsound->num_ops;){
              if (current_op->func == NULL){
                    bsound->num_ops = i;
-                   //this is where i create some kind of remote error management
+                   bsound->errors[BERROR_FUNCST_NULL]++;
                    break;
              }
         current_op->func(temp1, temp2, current_op->func_st, current_op->attr , bsound);
@@ -278,7 +278,7 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
             temp2 = temp;
         }
         if (current_op->next_op == NULL && i < bsound->num_ops){
-             //this needs to be reported as well
+             bsound->errors[BERROR_NEXT_OP_NULL]++;
        }
         if (current_op->next_op != NULL)
             current_op = current_op->next_op;
@@ -413,6 +413,7 @@ int main(int argc, const char * argv[]) {
 
                 pthread_create(&input_handling, NULL, *(input_handler), (void *)bsound);
                 while(!bsound->quit_flag){
+                      // isn't this always true when requested_bufsize and bufsize don't match?
                       if (bsound->pause_flag){
                            Pa_StopStream(handle);
                            bsound->bufsize = bsound->requested_bufsize;
@@ -445,7 +446,6 @@ int main(int argc, const char * argv[]) {
                 free_op_stack(bsound->head, bsound);
                 if (bsound->num_ops!=0)
                     free(bsound->head);
-                free(bsound);
                 printf("...\tdeallocating resources\t");
             }
             else printf("%s \n", Pa_GetErrorText(err));
@@ -454,7 +454,11 @@ int main(int argc, const char * argv[]) {
         else printf("%s \n", Pa_GetErrorText(err));
 
     }
-
+    for (i=0; i<BERROR_NUM_ERRORS; i++){
+          //if (bsound->errors[i]!=0)
+            printf("BERROR %d occurred %d times\n", i, bsound->errors[i]);
+   }
+   free(bsound);
     printf("...\t quit\n\n");
     return 0;
 }

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <curses.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <stdbool.h>
 #define IN_SIZE 7
@@ -531,8 +532,10 @@ void* input_handler(void* in){
                         }
                     }
                     else {
+                        if (isalpha(single_char) || single_char == ' '){
                         line[i++]=single_char;
                         chars_entered = 0;
+                        }
                     }
                             int32_t j;
                     for (j=0; j<i; j++){
