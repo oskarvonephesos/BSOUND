@@ -1036,7 +1036,11 @@ void print_preferences_menu(BSOUND* bsound, int16_t* print_loc){
     else
     mvprintw(print_loc[0]+2, print_loc[1], "CROSS FADE LOOP BOUNDARIES: DISABLED ");
     mvprintw(print_loc[0]+4, print_loc[1], "CHOOSE AND HIT ENTER TO TOGGLE/CYCLE THROUGH SETTINGS");
-    mvprintw(print_loc[0]+5, print_loc[1], "type 'q' to go back");
+    #ifdef USE_CALLBACK
+    mvprintw(print_loc[0]+7, print_loc[1], "CALLBACK FUNCTION USING %.3f %% proportion of CPU", 100.0*Pa_GetStreamCpuLoad(bsound->stream_handle));
+    mvprintw(print_loc[0]+8, print_loc[1], "type 'r' to refresh");
+    #endif
+    mvprintw(print_loc[0]+10, print_loc[1], "type 'q' to go back");
     refresh();
 }
 
@@ -1051,6 +1055,8 @@ void display_preferences_menu(BSOUND* bsound, int16_t* print_loc){
                 move(print_loc[0] + ++option_selected, print_loc[1]-1 );
             refresh();
         }
+        if (single_char == 'r')
+        print_preferences_menu(bsound, print_loc);
         else if (single_char == 'w' || single_int == KEY_UP){
             if (option_selected > 0)
                 move (print_loc[0]+ --option_selected, print_loc[1]-1);
@@ -1069,13 +1075,19 @@ void display_preferences_menu(BSOUND* bsound, int16_t* print_loc){
                     break;
                 case 1:
                     erase();
+                    #ifndef USE_CALLBACK
                     mvprintw(print_loc[0], print_loc[1], "CHANGING BUFFER SIZE WILL ONLY TAKE EFFECT AFTER RESTARTING BSOUND");
-                    mvprintw(print_loc[0]+2, print_loc[1], "PRESS ANY KEY TO CONTINUE");
-                    refresh(); getch();
-                    if (bsound->requested_bufsize < 2048)
+                    #else
+                    mvprintw(print_loc[0], print_loc[1], "JUST A MOMENT");
+                    #endif
+                    refresh(); if (bsound->requested_bufsize < 2048)
                         bsound->requested_bufsize *= 2;
                     else
                         bsound->requested_bufsize = 64;
+                        bsound->pause_flag = 1; sleep(1);
+                    mvprintw(print_loc[0]+2, print_loc[1], "PRESS ANY KEY TO CONTINUE");
+                     getch();
+
                     print_preferences_menu(bsound, print_loc);
                     move(print_loc[0] + option_selected, print_loc[1]-1);
                     refresh();

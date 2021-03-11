@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <curses.h>
 #include <stdbool.h>
+#include "../portaudio/portaudio.h"
 #ifndef MYFLT
 typedef double MYFLT;
 #endif
@@ -78,6 +79,7 @@ typedef struct _BSOUND{
     WINDOW* wnd;
     bool filter_bank_active;
     bool filter_bank_exists;
+    PaStream* stream_handle;
     } BSOUND;
 typedef struct _OP_STACK{
     //operator

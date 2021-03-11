@@ -20,6 +20,7 @@
 #include "globaltypes.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "../portaudio/portaudio.h"
 
 #ifndef input_handling_h
 #define input_handling_h

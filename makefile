@@ -5,7 +5,7 @@ CFLAGS =-DPA_USE_COREAUDIO=1 -Wno-deprecated-declarations -DUSE_CALLBACK#-o3 -ff
 SRCDIR =./src/
 PDIR =./portaudio/
 _SRC = data_types.o input_handling.o log_actions.o opcodes.o \
-	programm_state.o util_opcodes.o main_blocking_stack.o
+	programm_state.o util_opcodes.o main_callback.o
 _TEST_SRC = data_types.o input_handling.o log_actions.o opcodes.o \
 		programm_state.o util_opcodes.o test_sound.o
 SRC = $(patsubst %, $(SRCDIR)%, $(_SRC) )
@@ -19,7 +19,6 @@ LIBS = -framework CoreAudio -framework AudioToolbox -framework AudioUnit\
 	-framework CoreFoundation -framework CoreServices
 bsound: $(SRC) $(PORTSRC)
 	$(CC) $(CFLAGS) -o bsound $(SRC) $(PORTSRC) -lcurses  $(LIBS)
-
 test: $(TEST_SRC)
 	$(CC) $(CFLAGS) -o test $(TEST_SRC) -lcurses
 ##this is very ugly. there has to be a more elegant way of solving this
@@ -34,7 +33,8 @@ $(SRCDIR)test_sound.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)
 	$(SRCDIR)opcodes.h $(SRCDIR)programm_state.h $(SRCDIR)util_opcodes.h
 $(SRCDIR)main_blocking_stack.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
 	$(SRCDIR)opcodes.h $(SRCDIR)programm_state.h $(SRCDIR)util_opcodes.h
-
+$(SRCDIR)main_callback.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
+	$(SRCDIR)opcodes.h $(SRCDIR)programm_state.h $(SRCDIR)util_opcodes.h
 .PHONY: clean
 clean: ;-rm -f $(PDIR)*.o
 	-rm -f $(SRCDIR)*.o
