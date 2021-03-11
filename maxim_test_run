@@ -1,6 +1,4 @@
-make clean
-clang ./src/test_sound.c -DMAXIM_TEST -c -o src/test_sound.o
-make test
-./test
+make maxim
+./maxim_test
 sox -e floating-point -c 2 -r 44100 -t raw -b 32 audio_out audio_out.wav
 play audio_out.wav
