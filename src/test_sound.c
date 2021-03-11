@@ -259,6 +259,7 @@ int main(int argc, const char * argv[]) {
     //recordbegin points to reset point when we pass recordend
     //recordzero points to reset point when we pass buffer end
     ///@todo: this has to be changed!!!///welcome text for new version
+    #ifndef MAXIM_TEST
     printf("GET SETTINGS FROM LOG FILE? (y/n)?\n");
     char reply;
     scanf("%c", &reply);
@@ -273,11 +274,17 @@ int main(int argc, const char * argv[]) {
         }
         }
     }
+    #endif
     int in_chans, out_chans;
+    #ifndef MAXIM_TEST
     printf("NUMBER OF IN CHANS?\n");
     scanf("%d", &in_chans);
     printf("NUMBER OF OUT CHANS?\n");
     scanf("%d", &out_chans);
+    #else
+    in_chans = 2;
+    out_chans = 2;
+    #endif
     bsound->in_chans = in_chans;
     bsound->out_chans = out_chans;
         if (out_chans > in_chans )
@@ -296,10 +303,13 @@ int main(int argc, const char * argv[]) {
     temp2     = (float *)calloc(sizeof(float)*2048*bsound->num_chans, 1);
     RECORD_INFO* myrecordinfo = init_recordinfo(bsound);
     recordbuf = (float*) calloc(sizeof(float)*myrecordinfo->recordbuflength, 1);
-
+    #ifndef MAXIM_TEST
     printf("Opcode to test?\n");
     char opcode_name[256];
     scanf("%s", opcode_name);
+    #else
+    char opcode_name[256] = "delay";
+    #endif
     COMMAND* usr_in = parse(opcode_name, 20);
     usr_in->bsound = bsound; usr_in->cursor = NULL;
     insert_op(bsound, usr_in);

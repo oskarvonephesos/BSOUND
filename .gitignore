@@ -1,7 +1,10 @@
 bsound
 test
+#audio files
 audio_in
 audio_out
+*.wav
+*.raw
 */*.o
 #files dependent on user behaviour
 0
@@ -9,5 +12,6 @@ audio_out
 2
 3
 log.txt
+#system files
 .DS_STORE
 */.DS_STORE
