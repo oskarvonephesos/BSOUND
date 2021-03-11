@@ -1100,8 +1100,7 @@ void display_preferences_menu(BSOUND* bsound, int16_t* print_loc){
                     refresh(); if (bsound->requested_bufsize < 2048)
                         bsound->requested_bufsize *= 2;
                     else
-                        bsound->requested_bufsize = 64;
-                        bsound->pause_flag = 1; sleep(1);
+                        bsound->requested_bufsize = 64; sleep(1);
                     mvprintw(print_loc[0]+2, print_loc[1], "PRESS ANY KEY TO CONTINUE");
                      getch();
 

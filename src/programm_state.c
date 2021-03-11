@@ -24,22 +24,26 @@ BSOUND* init_bsound(){
     bsound->bufsize               = BUF;
     bsound->requested_bufsize     = bsound->bufsize;
     bsound->sample_rate           = SR;
-    bsound->default_buffer_length = SR;
     bsound->wnd                   = NULL;
     bsound->num_ops               = 0;
     bsound->quit_flag             = 0;
     bsound->hi_damp               = 2-cos(20.0*MY_2_PI/bsound->sample_rate);
     bsound->hi_damp               = (bsound->hi_damp  - sqrt(bsound->hi_damp *bsound->hi_damp - 1.0));
-    bsound->out_of_range          = 0;
     bsound->mono_input            = 0;
     bsound->in_out_chanmatch      = true;
-    bsound->pause_flag            = 0;
-    bsound->restart_requested     = 0;
     bsound->bypass_flag           = 0;
     bsound->record_flag           = 0;
     bsound->playback_flag         = 0;
     bsound->crossfade_looping     = true;
-    bsound->errors                = (BERROR*) calloc(sizeof(BERROR)*BERROR_NUM_ERRORS, 1);
+    bsound->errors                = (BERROR*) calloc(sizeof(int32_t)*BERROR_NUM_ERRORS, 1);
+    //not currently in use
+    //legacy
+    bsound->pause_flag            = 0;
+    //deprecated
+    bsound->default_buffer_length = SR;
+    bsound->out_of_range          = 0;
+    //planned
+    bsound->restart_requested     = 0;
     bsound->filter_bank_active    = 0;
     bsound->filter_bank_exists    = 0;
     return bsound;

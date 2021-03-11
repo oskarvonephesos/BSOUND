@@ -414,7 +414,7 @@ int main(int argc, const char * argv[]) {
                 pthread_create(&input_handling, NULL, *(input_handler), (void *)bsound);
                 while(!bsound->quit_flag){
                       // isn't this always true when requested_bufsize and bufsize don't match?
-                      if (bsound->pause_flag){
+                      if (bsound->bufsize != bsound->requested_bufsize){
                            Pa_StopStream(handle);
                            bsound->bufsize = bsound->requested_bufsize;
                            err = Pa_OpenStream(&handle,
@@ -455,7 +455,7 @@ int main(int argc, const char * argv[]) {
 
     }
     for (i=0; i<BERROR_NUM_ERRORS; i++){
-          //if (bsound->errors[i]!=0)
+          if (bsound->errors[i]!=0)
             printf("BERROR %d occurred %d times\n", i, bsound->errors[i]);
    }
    free(bsound);

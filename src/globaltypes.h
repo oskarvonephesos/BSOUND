@@ -19,7 +19,6 @@
     **/
 #ifndef types_h
 #define types_h
-#include <pthread.h>
 #include <curses.h>
 #include <stdbool.h>
 #include "../portaudio/portaudio.h"
@@ -61,32 +60,31 @@ typedef enum {
 typedef struct _BSOUND{
     int32_t num_ops;
     int32_t sample_rate;
-    int32_t default_buffer_length;
     int16_t num_chans;
     int32_t bufsize;
     int32_t requested_bufsize;
-    ///@deprecated?
-    int32_t out_of_range;
     MYFLT hi_damp;
     struct _OP_STACK* head;
     bool quit_flag;
-    bool modify_flag;
     const char* programm_loc;
     bool mono_input;
     int16_t in_chans;
     int16_t out_chans;
     bool in_out_chanmatch;
-    bool pause_flag;
-    bool restart_requested;
     bool bypass_flag;
     bool record_flag;
     bool playback_flag;
     bool crossfade_looping;
     WINDOW* wnd;
-    bool filter_bank_active;
-    bool filter_bank_exists;
     PaStream* stream_handle;
     BERROR* errors;
+    //not currently in use
+    int32_t out_of_range;
+    bool pause_flag;
+    bool restart_requested;
+    int32_t default_buffer_length;
+    bool filter_bank_active;
+    bool filter_bank_exists;
     } BSOUND;
 typedef struct _OP_STACK{
     //operator
