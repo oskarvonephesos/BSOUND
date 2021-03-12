@@ -788,8 +788,7 @@ int32_t insert_op(BSOUND* bsound, COMMAND* command){
         return -1;
     }
     new->type = command->type;
-    //mvprintw(0, 0, "new: %p; bsound->head %p num_ops %d", new, bsound->head, bsound->num_ops);
-    refresh();
+    pthread_mutex_lock(&bsound->mymutex);
     if (bsound->num_ops == 0){
         new->y = bsound->head->y;
         bsound->head = new;
@@ -797,8 +796,7 @@ int32_t insert_op(BSOUND* bsound, COMMAND* command){
         bsound->head->previous_op = NULL;
         bsound->head->x = 7; //insize
         bsound->num_ops+=1;
-       // mvprintw(1, 0, "new: %p; bsound->head %p num_ops %d", new, bsound->head, bsound->num_ops);
-        refresh();
+        pthread_mutex_unlock(&bsound->mymutex);
         return 0;
     }
     else {
@@ -812,6 +810,7 @@ int32_t insert_op(BSOUND* bsound, COMMAND* command){
                 command->cursor = new;
                 bsound->head = new;
                 bsound->num_ops +=1;
+                pthread_mutex_unlock(&bsound->mymutex);
                 return 0;
             }
             new->previous_op = command->cursor;
@@ -820,20 +819,20 @@ int32_t insert_op(BSOUND* bsound, COMMAND* command){
                 command->cursor->next_op->previous_op = new;
             command->cursor->next_op = new;
             bsound->num_ops+=1;
-            mvprintw(2, 0, "cursor: %p; bsound->head %p num_ops %d", command->cursor, bsound->head, bsound->num_ops);
-            mvprintw(3, 0, "next: %p; previous: %p", new->next_op, new->previous_op);
-            refresh();
+            pthread_mutex_unlock(&bsound->mymutex);
             return 0;
         }
+        pthread_mutex_unlock(&bsound->mymutex);
         return -1;
     }
 }
 void delete_item(BSOUND* bsound, OP_STACK* cursor){
     if (bsound->num_ops>0){
+    pthread_mutex_lock(&bsound->mymutex);
     if (bsound->num_ops == 1){
         bsound->num_ops--;
         bsound->head->dealloc(bsound, bsound->head->func_st);
-        //cursor = bsound->head;
+        pthread_mutex_unlock(&bsound->mymutex);
     }
     else {
         bsound->num_ops--;
@@ -848,7 +847,7 @@ void delete_item(BSOUND* bsound, OP_STACK* cursor){
         cursor->next_op->previous_op = bsound->head;
         }
         cursor->dealloc(bsound, cursor->func_st);
-        //cursor = bsound->head;
+        pthread_mutex_unlock(&bsound->mymutex);
     }
 }
 }

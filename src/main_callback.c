@@ -241,6 +241,7 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
 void apply_fx(float* input, float* output, BSOUND* bsound, float* temp1, float* temp2){
     int32_t i, skip_total = 0;
     float* temp;
+    pthread_mutex_lock(&bsound->mymutex);
     OP_STACK* current_op = bsound->head;
     if (bsound->num_ops == 0){
         for (i=0; i<bsound->bufsize*bsound->num_chans; i++){
@@ -286,6 +287,7 @@ void apply_fx(float* input, float* output, BSOUND* bsound, float* temp1, float* 
         for (i=0; i<sampcount; i++)
         output[i]+=temp2[i];
     }
+    pthread_mutex_unlock(&bsound->mymutex);
 }
 int main(int argc, const char * argv[]) {
     BSOUND * bsound = init_bsound();

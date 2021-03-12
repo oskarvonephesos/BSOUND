@@ -22,6 +22,7 @@
 #include <curses.h>
 #include <stdbool.h>
 #include "../portaudio/portaudio.h"
+#include <pthread.h>
 #ifndef MYFLT
 typedef double MYFLT;
 #endif
@@ -58,6 +59,7 @@ typedef enum {
       BERROR_NUM_ERRORS
 }BERROR;
 typedef struct _BSOUND{
+    pthread_mutex_t mymutex;
     volatile int32_t num_ops;
     int32_t sample_rate;
     int16_t num_chans;

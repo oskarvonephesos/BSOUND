@@ -21,6 +21,7 @@
 
 BSOUND* init_bsound(){
     BSOUND* bsound = (BSOUND*) malloc(sizeof(BSOUND));
+    pthread_mutex_init(&bsound->mymutex, NULL);
     bsound->bufsize               = BUF;
     bsound->requested_bufsize     = bsound->bufsize;
     bsound->sample_rate           = SR;

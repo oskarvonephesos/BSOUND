@@ -423,7 +423,7 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     data->transpose_phs = 0;
 
     max_rand = data->max_dist;
-    for (i=0; i<data->disttab_length-1; ){ //gaussian distribution using box-muller transform
+    for (i=0; i<data->disttab_length; ){ //gaussian distribution using box-muller transform
         rand_a = (double)(rand()%max_rand)/max_rand; //pair of random vals
         rand_b = (double)(rand()%max_rand)/max_rand;
         //transform here; fabs turns them into unipolar vals, rescaling makes sure they don't exceed max_rand
@@ -612,6 +612,7 @@ void partikkel(float*input, float*output, void* data_st, const int16_t* attr, co
                                 if (k>=inlength){k-=inlength;}
                                 kk=(data->disttab[data->disttab_index++]%data->curr_dist)+data->out->index;//read from dist-tab
                                 if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
+                                //while?
                                 if (kk>=inlength){kk-=inlength;}
                                 MYFLT val, prv_val;
                                 if (attr[6]==0){
