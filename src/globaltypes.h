@@ -58,7 +58,7 @@ typedef enum {
       BERROR_NUM_ERRORS
 }BERROR;
 typedef struct _BSOUND{
-    int32_t num_ops;
+    volatile int32_t num_ops;
     int32_t sample_rate;
     int16_t num_chans;
     int32_t bufsize;

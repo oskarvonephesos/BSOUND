@@ -104,7 +104,7 @@ void cross_fade_buffer(BSOUND* bsound, RECORD_INFO* r){
           r->is_crossfaded = true;
 }
 void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r);
-void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float* temp1, float* temp2);
+void apply_fx(float* input, float* output, BSOUND* bsound, float* temp1, float* temp2);
 typedef struct {
   BSOUND* bsound;
   RECORD_INFO* r;
@@ -122,7 +122,7 @@ static int test_callback( const void *input,
       float* out = (float*) output;
       BSOUND* bsound = data->bsound;
       write_input(in, NULL, bsound, data->r );
-      apply_fx(in, out, bsound->head, bsound,data->temp1, data->temp2);
+      apply_fx(in, out, bsound,data->temp1, data->temp2);
       int i;
       for (i=0; i<bsound->bufsize*bsound->num_chans; i++){
           if (out[i]>1.0f){
@@ -238,10 +238,10 @@ void write_input(float* input, PaStream* handle, BSOUND* bsound, RECORD_INFO* r)
     cross_fade_buffer(bsound, r);
     r->readhead = recordhead;
 }
-void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float* temp1, float* temp2){
+void apply_fx(float* input, float* output, BSOUND* bsound, float* temp1, float* temp2){
     int32_t i, skip_total = 0;
     float* temp;
-    OP_STACK* current_op = head;
+    OP_STACK* current_op = bsound->head;
     if (bsound->num_ops == 0){
         for (i=0; i<bsound->bufsize*bsound->num_chans; i++){
             output[i]=0.0f;

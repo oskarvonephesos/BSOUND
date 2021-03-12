@@ -402,7 +402,7 @@ void* init_partikkel(BSOUND* bsound, USR_IN type){
     data->out = alloc_rngbuf(bsound, buf_length);
     data->err_term = malloc(sizeof(MYFLT*)*bsound->num_chans);
     for (i=0; i<bsound->num_chans; i++)
-        data->err_term[i]=(MYFLT*)calloc(sizeof(MYFLT*)*buf_length, 1);
+        data->err_term[i]=(MYFLT*)calloc(sizeof(MYFLT)*buf_length, 1);
     data->disttab_index  = 0;
     data->disttab_length =4096<<5;
 
