@@ -776,6 +776,7 @@ int32_t display_stack(BSOUND* bsound, int32_t max_x, int32_t max_y){
 }
 int32_t insert_op(BSOUND* bsound, COMMAND* command){
     OP_STACK* new = (OP_STACK*)malloc(sizeof(OP_STACK));
+    new->next_op = new->previous_op = NULL;
     new->dealloc = command->dealloc;
     new->func = command->operator;
     new->func_st = command->init(bsound, command->type);
@@ -792,8 +793,6 @@ int32_t insert_op(BSOUND* bsound, COMMAND* command){
     if (bsound->num_ops == 0){
         new->y = bsound->head->y;
         bsound->head = new;
-        bsound->head->next_op = NULL;
-        bsound->head->previous_op = NULL;
         bsound->head->x = 7; //insize
         bsound->num_ops+=1;
         pthread_mutex_unlock(&bsound->mymutex);
@@ -836,17 +835,14 @@ void delete_item(BSOUND* bsound, OP_STACK* cursor){
     }
     else {
         bsound->num_ops--;
+        cursor->dealloc(bsound, cursor->func_st);
         if(cursor->previous_op)
             cursor->previous_op->next_op = cursor->next_op;
         else
             bsound->head = cursor->next_op;
         if(cursor->next_op){
-        if (cursor->previous_op)
         cursor->next_op->previous_op = cursor->previous_op;
-        else
-        cursor->next_op->previous_op = bsound->head;
         }
-        cursor->dealloc(bsound, cursor->func_st);
         pthread_mutex_unlock(&bsound->mymutex);
     }
 }
