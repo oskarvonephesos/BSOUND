@@ -1,11 +1,69 @@
+##three different ways of getting the file path should yield one usable result##
+PATH1=` pwd `
+PATH2=` dirname "$(readlink  "$0")" `
+PATH3=` dirname $0`
+echo $PATH1
+echo $PATH2
+echo $PATH3
+
+#strlen operator in .sh
+if [[ ${#PATH1} > ${#PATH2} ]]
+      then
+      if [[ ${#PATH1} > ${#PATH3} ]]
+      then
+            cd $PATH1
+      else
+      cd $PATH3
+      fi
+else
+      if [[ ${#PATH2} > ${#PATH3} ]]
+      then
+      cd $PATH2
+      else
+      cd $PATH3
+      fi
+fi
 if test -e /opt/homebrew #is homebrew installed?
       then
-git pull
-make
+      if test -e ./.git
+      then
+      git pull
+      else
+      echo #
+      echo #
+      echo Please consider installing git.
+      echo git is required for auto-update with this script
+      echo to install simply type "brew install git"
+      echo #
+      echo #
+      make
+      fi
 elif test -e /usr/local/Homebrew #alternative location
       then
-git pull
-make
+      if test -e ./.git
+      then
+      if test -e /usr/local/bin/git
+      then
+      git pull
+      make
+      else
+      echo #
+      echo #
+      echo Please consider installing git.
+      echo git is required for auto-update with this script
+      echo to install simply type "brew install git"
+      echo #
+      echo #
+      fi
+      else
+      echo #
+      echo #
+      echo Please consider installing git.
+      echo git is required for auto-update with this script
+      echo to install simply type brew install git
+      echo #
+      echo #
+      fi
 else
 echo #############################################################
 echo #############################################################
@@ -18,4 +76,4 @@ echo "(Please run git pull && make)"
 echo #############################################################
 echo #############################################################
 make
-fi;
+fi

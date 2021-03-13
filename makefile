@@ -4,7 +4,7 @@ CFLAGS =-DPA_USE_COREAUDIO=1 -Wno-deprecated-declarations -DUSE_CALLBACK#-o3 -ff
 # this changes search directory #-isysroot /Library/Developer/CommandLineTools/MacOSX10.15.sdk/##-o2 is a more moderate optimization, but this doesn't seem to do very much
 SRCDIR =./src/
 PDIR =./portaudio/
-_SRC = data_types.o input_handling.o log_actions.o opcodes.o \
+_SRC = callback_functions.o data_types.o input_handling.o log_actions.o opcodes.o \
 	programm_state.o util_opcodes.o main_callback.o
 _TEST_SRC = data_types.o input_handling.o log_actions.o opcodes.o \
 		programm_state.o util_opcodes.o test_sound.o
@@ -23,6 +23,7 @@ test: $(TEST_SRC) $(PORTSRC)
 	$(CC) $(CFLAGS) -o test $(TEST_SRC) $(PORTSRC) -lcurses $(LIBS)
 ##this is very ugly. there has to be a more elegant way of solving this
 $(SRC): $(SRCDIR)globaltypes.h
+$(SRCDIR)callback_functions.o: $(SRCDIR)input_handling.o $(SRCDIR)util_opcodes.o
 $(SRCDIR)data_types.o: $(SRCDIR)data_types.c $(SRCDIR)data_types.h
 $(SRCDIR)input_handling.o: $(SRCDIR)input_handling.c $(SRCDIR)input_handling.h
 $(SRCDIR)log_actions.o: $(SRCDIR)log_actions.c $(SRCDIR)log_actions.h
@@ -34,7 +35,7 @@ $(SRCDIR)test_sound.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)
 #not maintained
 $(SRCDIR)main_blocking_stack.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
 	$(SRCDIR)opcodes.h $(SRCDIR)programm_state.h $(SRCDIR)util_opcodes.h
-$(SRCDIR)main_callback.o: $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
+$(SRCDIR)main_callback.o: $(SRCDIR)callback_functions.h $(SRCDIR)data_types.h $(SRCDIR)input_handling.h $(SRCDIR)log_actions.h\
 	$(SRCDIR)opcodes.h $(SRCDIR)programm_state.h $(SRCDIR)util_opcodes.h
 .PHONY: clean
 clean: ;-rm -f $(PDIR)*.o
