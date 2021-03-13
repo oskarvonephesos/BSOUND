@@ -79,6 +79,7 @@ typedef struct _BSOUND{
     bool crossfade_looping;
     WINDOW* wnd;
     PaStream* stream_handle;
+    PaStreamCallbackFlags statusFlags;
     BERROR* errors;
     //not currently in use
     int32_t out_of_range;

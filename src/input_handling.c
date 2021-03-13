@@ -311,6 +311,19 @@ void* input_handler(void* in){
                 refresh();
             }
             single_int = getch(); single_char = (char) single_int;
+            switch (bsound->statusFlags){
+                  case paInputUnderflow:
+                  mvprintw(0, 0, "Input underflow");
+                  case paInputOverflow:
+                  mvprintw(0, 0, "Input overflow");
+                  case paOutputUnderflow:
+                  mvprintw(0, 0, "Output underflow");
+                  case paOutputOverflow:
+                  mvprintw(0, 0, "Output overflow");
+                  default:
+                  refresh();
+                  break;
+            }
             //global controls
             if (single_char == '\n' && delete_flag){
                 delete_item(bsound, cursor);
@@ -532,7 +545,7 @@ void* input_handler(void* in){
                         }
                     }
                     else {
-                        if (isalpha(single_char) || single_char == ' '){
+                        if ((isalpha(single_char) || single_char == ' ' )&& i <25){
                         line[i++]=single_char;
                         chars_entered = 0;
                         }
@@ -698,9 +711,25 @@ struct user_types all_types[NUM_OPTIONS]={
     {PREFERENCES_MENU, "preferences", 11, NULL, NULL, NULL }
 };
 int32_t autocomplete(char* instring, int32_t length, int16_t option){
-    int32_t i = 0, matching = 0;
+    int32_t i = 0, matching = 0, leading_white_space = 0;
+    bool push_flag = false;
+    char* to_be_processed = instring;
+    //ignore leading whitespace
+    while (to_be_processed[0]==' ' && leading_white_space<length){
+    to_be_processed = &instring[++leading_white_space];
+      }
+      length -= leading_white_space;
+      // autocomplete on push as well
+    if (length>5){
+          if (strncmp(to_be_processed, "push ", 5)==0){
+          to_be_processed = &to_be_processed[5];
+          push_flag = true;
+          length -= 5;
+    }
+   }
+   i=0;
     while (i<NUM_OPTIONS){
-        if (strncmp(instring, all_types[i].name, length)==0)
+        if (strncmp(to_be_processed, all_types[i].name, length)==0)
             matching++;
         i++;
     }
@@ -709,29 +738,41 @@ int32_t autocomplete(char* instring, int32_t length, int16_t option){
             option = option%matching + 1;
         i = 0; int32_t j = 0;
         while (i<NUM_OPTIONS){
-            if (strncmp(instring, all_types[i].name, length)==0){
+            if (strncmp(to_be_processed, all_types[i].name, length)==0){
                 if (++j==option)
                     break;
             }
             i++;
         }
-        memcpy(instring, all_types[i].name, all_types[i].name_length);
-        return all_types[i].name_length;
+        memcpy(to_be_processed, all_types[i].name, all_types[i].name_length);
+        if (!push_flag)
+        return all_types[i].name_length + leading_white_space;
+        else
+        return all_types[i].name_length +5 + leading_white_space;
     }
     else
-        return length;
+        if (!push_flag)
+        return length + leading_white_space;
+        else
+        return length +5 + leading_white_space ;
 }
 COMMAND* parse(char* line, int32_t length){
     USR_IN* parsed_in; int32_t i = 0; bool success = 0;
-    parsed_in = (USR_IN*)malloc(sizeof(USR_IN)*NUM_ARGUMENTS);
+    char* to_be_processed = line;
+    //parsed_in = (USR_IN*)malloc(sizeof(USR_IN)*NUM_ARGUMENTS);
     COMMAND* out_command = (COMMAND*)malloc(sizeof(COMMAND));
     out_command->push_flag = 0;
+    ///many leading whitespaces still confuses you
+    while (line[i]==' ' && i<length){
+          to_be_processed = &line[++i];
+   }
+    if (strncmp(to_be_processed, "push", 4)==0){
+        out_command->push_flag = 1;
+        to_be_processed = &to_be_processed[5];
+    }
+    i = 0;
     while (i<NUM_OPTIONS){
-        if (strncmp(line, "push", 4)==0){
-            out_command->push_flag = 1;
-            line = &line[5];
-        }
-        if (strncmp(line, all_types[i].name,  all_types[i].name_length)==0){
+        if (strncmp(to_be_processed, all_types[i].name,  all_types[i].name_length)==0){
             success = 1; break;
         }
         i++;
@@ -830,12 +871,11 @@ void delete_item(BSOUND* bsound, OP_STACK* cursor){
     pthread_mutex_lock(&bsound->mymutex);
     if (bsound->num_ops == 1){
         bsound->num_ops--;
-        bsound->head->dealloc(bsound, bsound->head->func_st);
         pthread_mutex_unlock(&bsound->mymutex);
+        bsound->head->dealloc(bsound, bsound->head->func_st);
     }
     else {
         bsound->num_ops--;
-        cursor->dealloc(bsound, cursor->func_st);
         if(cursor->previous_op)
             cursor->previous_op->next_op = cursor->next_op;
         else
@@ -844,6 +884,7 @@ void delete_item(BSOUND* bsound, OP_STACK* cursor){
         cursor->next_op->previous_op = cursor->previous_op;
         }
         pthread_mutex_unlock(&bsound->mymutex);
+        cursor->dealloc(bsound, cursor->func_st);
     }
 }
 }
