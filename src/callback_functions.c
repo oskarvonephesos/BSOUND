@@ -199,7 +199,7 @@ void write_input(float* input, BSOUND* bsound, RECORD_INFO* r){
     cross_fade_buffer(bsound, r);
     r->readhead = recordhead;
 }
-void apply_fx(const float* input, float* output, BSOUND* bsound, float* temp1, float* temp2){
+void apply_fx(float* input, float* output, BSOUND* bsound, float* temp1, float* temp2){
     int32_t i, skip_total = 0;
     float* temp;
     pthread_mutex_lock(&bsound->mymutex);
