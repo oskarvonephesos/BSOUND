@@ -92,72 +92,72 @@ struct attr_parse attr_types[NUM_OPTIONS]={
         {1,   0,   10,   0,    -60,     0,   0},
         {100, 100, 100, 100,  12,       100, 100},
         {95, 30,  100, 0,     0,        0, 100},
-        "ssfsdss", 5},
+        "ssfsdss", D_WET_ATTR},
     {PPDEL, {"time", "feedback", "filter", "spread", "volume", "skip", "wet"},
         {1,   0,   10,   0,    -60,     0,   0},
         {100, 100, 100, 100,  12,       100, 100},
         {100, 80,  100, 50,     0,      0, 100},
-        "ssfsdss", 5},
+        "ssfsdss", D_WET_ATTR},
     {TAPE, {"time", "feedback", "filter", "spread", "volume", "skip", "wet"},
         {1,   0,   10,   0,    -60,     0,   0},
         {100, 100, 100, 100,  12,       100, 100},
         {100, 30,  60, 40,    0,        0, 100},
-        "ssfsdss", 5},
+        "ssfsdss", D_WET_ATTR},
     {MULTITAP, {"time", "feedback", "filter", "spread", "volume", "skip", "wet"},
         {1,   0,   10,   0,    -60,     0,   0},
         {100, 100, 100, 100,  12,       100, 100},
         {100, 50,  100, 100,  0,        0, 100},
-        "ssfsdss", 5},
-    {CLOUD, {"spread", "density", "grain length", "transpose", "volume", "skip", "reverse", "feedback"},
-        {1,   1,   1,   1,   -60,       0,   0, 0},
-        {100, 300, 100, 190,  12,       100, 1, 100},
-        {100, 290,  70,  100,  0,       0, 1, 60},
-        "sssidsss", 7},
-    {SHIMMER, {"spread", "density", "grain length", "transpose", "volume", "skip", "reverse", "feedback"},
-        {1,   1,   1,   1,   -60,       0,   0, 0},
-        {100, 300, 100, 190,  12,       100, 1, 100},
-        {50, 190,  70,  180,  0,        0, 0, 0},
-        "sssidsss", 7},
-    {TRANSPOSE, {"spread", "density", "grain length", "transpose", "volume", "skip", "reverse", "feedback"},
-        {1,   1,   1,   1,   -60,       0,   0, 0},
-        {100, 300, 100, 190,  12,       100, 1, 100},
-        {100, 90,  70,  140,  0,        0, 0, 0},
-        "sssidsss", 7},
+        "ssfsdss", D_WET_ATTR},
+    {CLOUD, {"spread", "density", "grain length", "transpose", "volume", "skip","wet", "reverse", "feedback"},
+        {1,   1,   1,   1,   -60,       0,  0, 0, 0},
+        {100, 300, 100, 190,  12,       100,100, 1, 100},
+        {100, 290,  70,  100,  0,       0, 100,1, 60},
+        "sssidssss", P_FEEDBACK_ATTR},
+    {SHIMMER, {"spread", "density", "grain length", "transpose", "volume", "skip","wet", "reverse", "feedback"},
+        {1,   1,   1,   1,   -60,       0, 0,  0, 0},
+        {100, 300, 100, 190,  12,       100,100, 1, 100},
+        {50, 190,  70,  180,  0,        0, 100,0, 0},
+        "sssidssss", P_FEEDBACK_ATTR},
+    {TRANSPOSE, {"spread", "density", "grain length", "transpose", "volume", "skip","wet", "reverse", "feedback"},
+        {1,   1,   1,   1,   -60,       0,  0, 0, 0},
+        {100, 300, 100, 190,  12,       100, 100,1, 100},
+        {100, 90,  70,  140,  0,        0, 100,0, 0},
+        "sssidssss", P_FEEDBACK_ATTR},
     {REVERB, {"feedback", "filter", "modulation", "volume", "skip", "wet"},
         {0, 1, 0,  -60,         0,   0},
         {99, 100, 100, 12,      100, 100},
         {95, 60, 35,  0,        0, 100},
-        "sfsdss", 4},
+        "sfsdss", R_WET_ATTR},
     {PEDAL, {"feedback", "filter", "modulation", "volume", "skip", "wet"},
         {0, 1, 0,  -60,         0,   0},
         {99, 100, 100,  12,     100, 100},
         {97, 95, 0, 0,          0, 100},
-        "sfsdss", 4},
+        "sfsdss", R_WET_ATTR},
     {RINGMOD, {"frequency", "FM freq","FM index", "fold", "offset", "volume", "skip", "wet"},
         {1, 1, 0,    0,    0,  -60,          0,   0},
         {95, 100, 100,100, 25, 12,      100, 100},
         {85, 30, 50,   0,  0,    0,          0, 100},
-        "ffsssdss", 6},
+        "ffsssdss", M_WET_ATTR},
     {MODDEMOD, {"frequency", "FM freq","FM index", "fold", "offset", "volume", "skip", "wet"},
         {1, 1, 0,      0, 0,     -60,          0,   0},
         {95, 90, 100, 100, 25, 12,       100, 100},
         {60, 40, 0,   0, 0,     0,           0, 100},
-        "ffsssdss", 6},
+        "ffsssdss", M_WET_ATTR},
     {CRUSH, {"nyquist", "interpolate", "filter", "mu","volume", "skip", "wet"},
         {30, 0, 1, 0,  -60,     0,   0},
         {100, 2, 100, 10, 12,   100, 100},
         {80, 2, 100, 6, 0,      0, 100},
-        "fsfsdss",5},
+        "fsfsdss",C_WET_ATTR},
     {BBD, {"quality", "feedback", "filter", "mod amt", "mod speed","volume", "skip", "wet"},
         {20,  0,   1,   0, 0,  -60,     0,   0},
         {300, 100, 100, 100,100, 12,      100, 100},
         {100, 80,  70, 0, 0, 0,       0, 100},
-        "ssfssdss", 5},
+        "ssfssdss", B_WET_ATTR},
     {RESEQ, {"gain", "bandwidth", "tilt", "crunch", "volume", "skip", "wet"},
         {-50,  20,   0,   0, -60,     0,   0},
         {60, 400, 100, 2, 12,      100, 100},
         {10, 100,  50,  1, 0,       0, 100},
-        "ssfsdss", 5}
+        "ssfsdss", Q_WET_ATTR}
 };
 void display_attr(int16_t *attr, int32_t index, USR_IN type, int32_t *display_loc){
     float display_freq, my_base = pow(20000.0, 0.01);
@@ -311,19 +311,25 @@ void* input_handler(void* in){
                 refresh();
             }
             single_int = getch(); single_char = (char) single_int;
-            switch (bsound->statusFlags){
+            if (bsound->statusFlags){
+                  switch (bsound->statusFlags){
                   case paInputUnderflow:
                   mvprintw(0, 0, "Input underflow");
+                  break;
                   case paInputOverflow:
                   mvprintw(0, 0, "Input overflow");
+                  break;
                   case paOutputUnderflow:
                   mvprintw(0, 0, "Output underflow");
+                  break;
                   case paOutputOverflow:
                   mvprintw(0, 0, "Output overflow");
+                  break;
                   default:
-                  refresh();
                   break;
             }
+            }
+            refresh();
             //global controls
             if (single_char == '\n' && delete_flag){
                 delete_item(bsound, cursor);
@@ -360,7 +366,7 @@ void* input_handler(void* in){
                 refresh();
                 nodelay(wnd, 1);
                 int16_t counter = 0;
-                single_char = 'b';
+                single_char = '-';
                 while (bsound->record_flag && single_char != ' '){
                     usleep(30000); single_char = getch();
                     if (counter++ > 9)
@@ -688,7 +694,7 @@ struct user_types{
     int32_t name_length;
     void* (*init_opcode)(BSOUND* bsound, USR_IN type);
     void (*dealloc_opcode)(BSOUND* bsound, void* data);
-    void (*opcode)(float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
+    void (*opcode)(const float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
 };
 struct user_types all_types[NUM_OPTIONS]={
     {DELAY, "delay", 5, init_delay, dealloc_delay, delay},

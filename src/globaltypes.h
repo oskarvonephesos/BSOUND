@@ -79,7 +79,7 @@ typedef struct _BSOUND{
     bool crossfade_looping;
     WINDOW* wnd;
     PaStream* stream_handle;
-    PaStreamCallbackFlags statusFlags;
+    volatile PaStreamCallbackFlags statusFlags;
     BERROR* errors;
     //not currently in use
     int32_t out_of_range;
@@ -91,7 +91,7 @@ typedef struct _BSOUND{
     } BSOUND;
 typedef struct _OP_STACK{
     //operator
-    void (*func)(float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
+    void (*func)(const float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
     //dealloc function
     void (*dealloc)(BSOUND* bsound, void* data);
     //function data
@@ -106,7 +106,7 @@ typedef struct _OP_STACK{
 }OP_STACK;
 typedef struct {
     OP_STACK** head;
-    void (*operator)(float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
+    void (*operator)(const float* input, float* output, void* data, const int16_t* attr, const BSOUND* bsound);
     void* (*init)(BSOUND* bsound,  USR_IN type);
     void (*dealloc)(BSOUND* bsound, void* data);
     OP_STACK* cursor;

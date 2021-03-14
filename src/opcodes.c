@@ -204,7 +204,7 @@ void dealloc_delay(BSOUND* bsound, void* data_st){
     dealloc_rngbuf(data->aux, bsound);
     free(data->delay_length);
 }
-void delay(float *input, float * output, void* data_st,const int16_t* attr, const BSOUND* bsound){
+void delay(const float *input, float * output, void* data_st,const int16_t* attr, const BSOUND* bsound){
     DELAY_OPS* data = (DELAY_OPS*) data_st;
     int32_t i, i2, ii, j, j1, k, num_chans;
     int64_t auxlength;
@@ -212,7 +212,7 @@ void delay(float *input, float * output, void* data_st,const int16_t* attr, cons
     DELAY_LINE ** line = data->lines;
     MYFLT** feedback   = data->current_feedback;
     MYFLT dampfactor   = data->lp_damp, y0;
-    MYFLT volume       = pow(10.0, attr[4]/20.0);
+    MYFLT volume       = pow(10.0, attr[D_VOLUME_ATTR]/20.0);
     MYFLT interpolated, interpolated2, f0, f1, f2, f3, x, read_index, read_index2, incr, incr2;
     MYFLT* spacing = data->current_spacing, **weighting = data->current_weighting;
     int32_t x0, x1, x2, x3, line_length, line_length2;
@@ -221,10 +221,10 @@ void delay(float *input, float * output, void* data_st,const int16_t* attr, cons
     auxlength=aux->length;
     k=aux->index;
     //update DELAY_OPS from stack
-    data->lp_freq = attr_to_freq_conv(attr[2]);
+    data->lp_freq = attr_to_freq_conv(attr[D_FILTER_ATTR]);
     for (j= 0; j<num_chans; j++){
         for (i=0; i<num_chans; i++)
-        feedback[j][i] = data->feedback[j][i] * ((MYFLT)attr[1]/100.0);
+        feedback[j][i] = data->feedback[j][i] * ((MYFLT)attr[D_FEEDBACK_ATTR]/100.0);
     }
     //find largest weight
     int32_t largest_weight_x = 0; MYFLT my_largest_weight = 0.0;
@@ -237,9 +237,9 @@ void delay(float *input, float * output, void* data_st,const int16_t* attr, cons
     }
     //as spread increases, increase small weights, decrease largest weight
         for (i=0; i<data->num_taps; i++){
-            weighting[j][i]= volume * data->weighting[j][i] * ((MYFLT)attr[3]/100.0);
+            weighting[j][i]= volume * data->weighting[j][i] * ((MYFLT)attr[D_SPREAD_ATTR]/100.0);
         }
-        weighting[j][largest_weight_x] =volume * ( 1 - (1 - my_largest_weight)*((MYFLT)attr[3]/100.0));
+        weighting[j][largest_weight_x] =volume * ( 1 - (1 - my_largest_weight)*((MYFLT)attr[D_SPREAD_ATTR]/100.0));
     }
     for (i=0; i<num_chans; i++){
         MYFLT delay_time;
@@ -248,8 +248,9 @@ void delay(float *input, float * output, void* data_st,const int16_t* attr, cons
         else
             delay_time =  line[i]->length - line[i]->read_index + line[i]->index;
         data->current_spacing[i] = data->spacing[i]*delay_time;
-        if (((MYFLT)attr[0]/100.0)*line[i]->length != delay_time){
-            delay_time -= ((MYFLT)attr[0]/100.0)*line[i]->length;
+        if (((MYFLT)attr[D_TIME_ATTR]/100.0)*line[i]->length != delay_time){
+            delay_time -= ((MYFLT)attr[D_TIME_ATTR
+            ]/100.0)*line[i]->length;
             if (delay_time<(-bsound->bufsize/32))
                 delay_time =  - bsound->bufsize / 32;
             if (delay_time>bsound->bufsize/32)
@@ -277,6 +278,7 @@ void delay(float *input, float * output, void* data_st,const int16_t* attr, cons
         line_length = line[j]->length;
         line_length2 = line[j1]->length;
         y0 = line[j]->prv_y0;
+        MYFLT samp;
         for (k = 0; k<frameCount; k++){
             read_index += incr;
             read_index2 += incr2;
@@ -309,10 +311,10 @@ void delay(float *input, float * output, void* data_st,const int16_t* attr, cons
             f3 = line[j1]->value[x3];
             interpolated2= f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
             //so LP filter on input instead of output. let's see, i guess
-            input[ii] = feedback[j][j]*interpolated + feedback[j1][j]*interpolated2 + input[ii] ;
-            input[ii] = (y0 - input[ii])*dampfactor + input[ii];
-            y0 = input[ii];
-            line[j]->value[i++] = input[ii];
+            samp = feedback[j][j]*interpolated + feedback[j1][j]*interpolated2 + input[ii] ;
+            samp = (y0 - samp)*dampfactor + samp;
+            y0 = samp;
+            line[j]->value[i++] = samp;
             output[ii] = weighting[j][0] * interpolated;
             ii += num_chans;
             if (i>=line_length){i-=line_length;}
@@ -454,13 +456,13 @@ bool is_denormal(MYFLT in){
     else
         return 0;
 }
-void partikkel(float*input, float*output, void* data_st, const int16_t* attr, const BSOUND* bsound){
+void partikkel(const float*input, float*output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     PARTIKKEL_OPS* data = (PARTIKKEL_OPS*) data_st;
     RNGBUF* in = data->in;
     RNGBUF* out = data->out;
     DELAY_LINE** transposed=data->transposed;
     MYFLT silence = 0.0f;
-    MYFLT volume = pow(10.0, attr[4]/20.0);
+    MYFLT volume = pow(10.0, attr[P_VOLUME_ATTR]/20.0);
     MYFLT* env     = data->envtab;
     MYFLT** outval = out->value;
     MYFLT** inval  = in->value;
@@ -470,9 +472,9 @@ void partikkel(float*input, float*output, void* data_st, const int16_t* attr, co
     MYFLT* transposed_val;
     int32_t* disttab = data->disttab, d_index = data->disttab_index, d_length = data->disttab_length, d_redraw, i;
     //update from attr
-    data->grain_length = (int32_t)(((MYFLT)attr[2])/100.0*MAX_GRAIN_LENGTH);
-    data->frequency = bsound->sample_rate/attr[1];
-    data->curr_dist = (int32_t)((MYFLT)data->max_dist * (MYFLT)attr[0] /100.0);
+    data->grain_length = (int32_t)(((MYFLT)attr[P_GRAINLENGTH_ATTR])/100.0*MAX_GRAIN_LENGTH);
+    data->frequency = bsound->sample_rate/attr[P_DENSITY_ATTR];
+    data->curr_dist = (int32_t)((MYFLT)data->max_dist * (MYFLT)attr[P_SPREAD_ATTR] /100.0);
     d_redraw = bsound->num_chans*bsound->bufsize / data->frequency + 6;
     MYFLT rand_a, rand_b; int32_t max_rand = data->curr_dist;
     //srand(time(NULL));
@@ -493,20 +495,20 @@ void partikkel(float*input, float*output, void* data_st, const int16_t* attr, co
     int32_t ii, j, jj, jjj, k,   kk, transposed_length;
     int32_t to_write, grain_length = data->grain_length, frequency = data->frequency, transpose_freq = data->transpose_frequency;
     int64_t inlength = in->length;
-    MYFLT pitch_factor = interval_to_float_conv(attr[3]);
+    MYFLT pitch_factor = interval_to_float_conv(attr[P_TRANSPOSE_ATTR]);
     //for filter
     MYFLT y0, hi_damp;//, y1;
     MYFLT dampfactor = data->lp_damp, samp;
     //interpolation
     MYFLT f0, f1, f2, f3;
     MYFLT x, index, max_val = data->max_val;
-    MYFLT feedback = (MYFLT)attr[7]/100.0;
+    MYFLT feedback = (MYFLT)attr[P_FEEDBACK_ATTR]/100.0;
     // this limits the amount of available feedback at low spread settings
     //  spread
-    if (attr[0]<10){
+    if (attr[P_SPREAD_ATTR]<10){
         int16_t new_attr;
-        if (attr[7]>50){
-            new_attr = (int16_t) (50.0 + (attr[0])/10.0 * (attr[7]-50.0));
+        if (attr[P_FEEDBACK_ATTR]>50){
+            new_attr = (int16_t) (50.0 + (attr[P_SPREAD_ATTR])/10.0 * (attr[P_FEEDBACK_ATTR]-50.0));
             feedback = (MYFLT) new_attr/100.0;
     }
     }
@@ -615,7 +617,7 @@ void partikkel(float*input, float*output, void* data_st, const int16_t* attr, co
                                 //while?
                                 if (kk>=inlength){kk-=inlength;}
                                 MYFLT val, prv_val;
-                                if (attr[6]==0){
+                                if (attr[P_REVERSE_ATTR]==0){
                                     for (ii=0; ii<grain_length; ii++){
                                         val = transposed_val[k++]*env[ii];
                                         prv_val = outch[kk];
@@ -644,7 +646,7 @@ void partikkel(float*input, float*output, void* data_st, const int16_t* attr, co
                         }
 
                             else {
-                            if (attr[6]==0)
+                            if (attr[P_REVERSE_ATTR]==0)
                                 k=in->index + i; //read index
                             else
                                 k=in->index+i+grain_length;
@@ -655,7 +657,7 @@ void partikkel(float*input, float*output, void* data_st, const int16_t* attr, co
                             if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                             if (kk>=inlength){kk-=inlength;}
                                 MYFLT val, prv_val;
-                                if (attr[6]==0){
+                                if (attr[P_REVERSE_ATTR]==0){
                                 for (ii=0; ii<grain_length; ii++){
                                     val = inch[k++]*env[ii];
                                     prv_val = outch[kk];
@@ -697,7 +699,7 @@ void partikkel(float*input, float*output, void* data_st, const int16_t* attr, co
             err_term = data->err_term[j];
             for (i=0; i<to_write; i++){
                 if ((jj%frequency)==0){
-                    if (attr[6]==0)
+                    if (attr[P_REVERSE_ATTR]==0)
                     k=in->index + i; //read index
                     else
                         k=in->index+i+grain_length;
@@ -708,7 +710,7 @@ void partikkel(float*input, float*output, void* data_st, const int16_t* attr, co
                     if (data->disttab_index>=data->disttab_length){data->disttab_index =0;}
                     if (kk>=inlength){kk-=inlength;}
                     MYFLT val, prv_val;
-                    if (attr[6]==0){
+                    if (attr[P_REVERSE_ATTR]==0){
                     for (ii=0; ii<grain_length; ii++){
                         val = inch[k++]*env[ii];
                         prv_val = outch[kk];
@@ -881,11 +883,11 @@ void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* dat
     line->linseg_rmns = linseg_x;
     }
 }
-void reson(float *input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
+void reson(const float *input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     RESON_OPS* data = (RESON_OPS*) data_st;
     RNGBUF* in = data->in;
     RNGBUF* out = data->out;
-    MYFLT output_scaling = data->output_scaling * pow(10.0, attr[3]/20.0);
+    MYFLT output_scaling = data->output_scaling * pow(10.0, attr[R_VOLUME_ATTR]/20.0);
     int16_t num_chans = bsound->num_chans;
     int64_t frameCount = bsound->bufsize;
     MYFLT *inch, *outch;
@@ -897,16 +899,16 @@ void reson(float *input, float* output, void* data_st, const int16_t* attr, cons
     //reading indices
     int32_t i, ii, j,jj, k, kk;
     int32_t inlength = in->length, line_length;
-    data->lp_freq = (attr[1]/100.0)*10000;
-    fdbk=data->fdbk = (attr[0]/100.0);
+    data->lp_freq = (attr[R_FILTER_ATTR]/100.0)*10000;
+    fdbk=data->fdbk = (attr[R_FEEDBACK_ATTR]/100.0);
     if (data->num_lines == 12){
         output_scaling = data->output_scaling = 0.61375-0.4875*data->fdbk;
     }
     else if (data->num_lines == 8){
        output_scaling = data->output_scaling = 0.7289-0.5778*data->fdbk;
     }
-    if (attr[2]){
-    data->random_speed = (int32_t)( MAX_RANDOMIZE_SPEED / 5* ((100.0-attr[2])/100.0))+15;
+    if (attr[R_MODULATION_ATTR]){
+    data->random_speed = (int32_t)( MAX_RANDOMIZE_SPEED / 5* ((100.0-attr[R_MODULATION_ATTR])/100.0))+15;
     data->random_speed *= 128.0;
     data->random_speed /= bsound->bufsize;
     }
@@ -1079,26 +1081,26 @@ void dealloc_moddemod(BSOUND* bsound, void* data){
     free(data_st->modulator);
     free(data_st);
 }
-void moddemod(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
+void moddemod(const float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     MODDEMOD_OPS* data = (MODDEMOD_OPS *) data_st;
     int32_t j, i, ii, frameCount = bsound->bufsize;
     int16_t num_chans = bsound->num_chans;
     int32_t tab_length = data->tab_length;
     MYFLT current_index = data->index, x;
-    MYFLT volume = pow(10.0, attr[5]/20.0);
+    MYFLT volume = pow(10.0, attr[M_VOLUME_ATTR]/20.0);
     int32_t x0, x1, x2, x3;
     MYFLT f0, f1, f2, f3, interpolated;
     MYFLT y0, dampfactor = bsound->hi_damp, samp;
-    data->freq = 2.5+ 1000.0*(pow((attr[0]/100.0), 3.0));
-    data->mod_freq = 2.5+1000.0*(pow((attr[1]/100.0), 3.0));
+    data->freq = 2.5+ 1000.0*(pow((attr[M_FREQ_ATTR]/100.0), 3.0));
+    data->mod_freq = 2.5+1000.0*(pow((attr[M_FMFREQ_ATTR]/100.0), 3.0));
     MYFLT read_incr = data->freq*data->tab_length/bsound->sample_rate;
     MYFLT mod_incr = data->mod_freq*data->tab_length/bsound->sample_rate;
     MYFLT mod_index;
     MYFLT *modulator = data->modulator;
-    if (attr[3]!=data->prv_fold || attr[4]!= data->prv_offset){
-        MYFLT fold_val = (MYFLT) attr[3]/20.0;
+    if (attr[M_FOLD_ATTR]!=data->prv_fold || attr[M_OFFSET_ATTR]!= data->prv_offset){
+        MYFLT fold_val = (MYFLT) attr[M_FOLD_ATTR]/20.0;
         fold_val += 1.0;
-        MYFLT offset_val = (MYFLT) attr[4]/25.0;
+        MYFLT offset_val = (MYFLT) attr[M_OFFSET_ATTR]/25.0;
         offset_val *= M_PI_2;
         MYFLT incr = MY_2_PI/tab_length;
         if (data->square){
@@ -1111,7 +1113,7 @@ void moddemod(float* input, float* output, void* data_st, const int16_t* attr, c
         for (j=0; j<tab_length; j++)
         modulator[j]=sin(fold_val*sin(j*incr)+offset_val)/0.707;
         }
-        data->prv_fold=attr[3]; data->prv_offset = attr[4];
+        data->prv_fold=attr[M_FOLD_ATTR]; data->prv_offset = attr[M_OFFSET_ATTR];
     }
     for (j=0; j<num_chans; j++){
         ii = j;
@@ -1122,7 +1124,7 @@ void moddemod(float* input, float* output, void* data_st, const int16_t* attr, c
             current_index +=read_incr;
             mod_index +=mod_incr;
             if (((int32_t)mod_index)>=tab_length){mod_index-=(MYFLT)tab_length;}
-            current_index += attr[2]*modulator[(int32_t)mod_index];
+            current_index += attr[M_FMINDEX_ATTR]*modulator[(int32_t)mod_index];
             if (((int32_t)current_index)>=tab_length){current_index-=(MYFLT)tab_length;}
             if (((int32_t)current_index)<0){current_index+=(MYFLT)tab_length;}
                 x0 = (int32_t)(current_index - 1.0);
@@ -1171,6 +1173,7 @@ void* init_crush(BSOUND* bsound, USR_IN type){
     data->prv_y0_hipass = (MYFLT*)calloc(sizeof(MYFLT)*bsound->num_chans, 1);
     data->in_read = (bsound->bufsize -2)-((1.0/data->read_factor)*((int32_t)bsound->bufsize*data->read_factor));
     data->samp_read = (bsound->bufsize -2)-(data->read_factor*((int32_t)bsound->bufsize/data->read_factor));
+    data->bit_reduced = (float*)calloc(sizeof(float)*bsound->num_chans*2048, 1);
 
     return (void*)data;
 }
@@ -1183,22 +1186,23 @@ void* init_crush(BSOUND* bsound, USR_IN type){
 float signum(float in){
     return (in > 0) ? 1 : ((in < 0) ? -1 : 0);
 }
-void crush(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
+void crush(const float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     CRUSH_OPS* data = (CRUSH_OPS*) data_st;
     //if we're not interpolating quantize
-    if (attr[1])
-        data->read_factor = attr_to_freq_conv(attr[0]) / bsound->sample_rate;
+    if (attr[C_INTERPOLATE_ATTR])
+        data->read_factor = attr_to_freq_conv(attr[C_NYQUIST_ATTR]) / bsound->sample_rate;
     else{
-        data->read_factor = attr_to_freq_conv(attr[0]) / bsound->sample_rate;
+        data->read_factor = attr_to_freq_conv(attr[C_NYQUIST_ATTR]) / bsound->sample_rate;
         data->read_factor = 1.0/((int32_t)(1.0/data->read_factor));
     }
-    data->lp_freq = attr_to_freq_conv(attr[2]);
+    data->lp_freq = attr_to_freq_conv(attr[C_FILTER_ATTR]);
     MYFLT read_factor =  1.0f / data->read_factor;
-    MYFLT volume = pow(10.0, attr[4]/20.0);
+    MYFLT volume = pow(10.0, attr[C_VOLUME_ATTR]/20.0);
     MYFLT* in_tab;
     MYFLT** samp_reduced = data->samp_reduced;
     int32_t x0, x1, x2, x3;
     MYFLT f0, f1, f2, f3, x, index;
+    float* bit_reduced = data->bit_reduced; const float* my_input;
     MYFLT samp, y0, damp_factor = data->damp_factor;
     int16_t num_chans = bsound->num_chans;
     int32_t i, ii, j, jj, tab_length = data->tab_length;
@@ -1210,17 +1214,20 @@ void crush(float* input, float* output, void* data_st, const int16_t* attr, cons
         data->damp_factor = damp_factor;
     }
     ///if bit-depth is reduced
-    if (attr[3]){
+    if (attr[C_MU_ATTR]){
         frameCount= bsound->bufsize*bsound->num_chans;
-        // max_val converts attr[3] and scales it
-        int32_t val; float max_val = (10.0 - attr[3]) / 9.0;
+        // max_val converts attr[C_MU_ATTR] and scales it
+        int32_t val; float max_val = (10.0 - attr[C_MU_ATTR]) / 9.0;
         max_val = 32.0 + max_val * max_val *max_val *max_val* 8160;
         double mu_denominator = log(1+255), one_by_mu = 1.0/255.0;
+        float samp;
         for (i=0; i<frameCount; i++){
-            input[i]= signum(input[i])*log(1+255*fabsf(input[i]))/mu_denominator;
-            val = (int32_t) (max_val * input[i]);
-            input[i]= ((float)val)/max_val;
-            input[i]=signum(input[i])*one_by_mu*(pow(266, fabsf(input[i])) -1);
+             samp = input[i];
+            samp= signum(samp)*log(1+255*fabsf(samp))/mu_denominator;
+            val = (int32_t) (max_val * samp);
+            samp= ((float)val)/max_val;
+            samp=signum(samp)*one_by_mu*(pow(266, fabsf(samp)) -1);
+            bit_reduced[i] = samp;
         }
     }
     frameCount = bsound->bufsize;
@@ -1228,8 +1235,12 @@ void crush(float* input, float* output, void* data_st, const int16_t* attr, cons
         jj = j;
         in_tab = data->in_buffer[j];
         ii = data->in_index;
+        if (attr[C_MU_ATTR])
+             my_input = bit_reduced;
+        else
+            my_input = input;
         for (i= 0; i< frameCount; i++){
-           in_tab[ii++] = input[jj] * volume;
+           in_tab[ii++] = my_input[jj] * volume;
             if (ii>=tab_length){ii=0;}
             jj += num_chans;
         }
@@ -1270,9 +1281,9 @@ void crush(float* input, float* output, void* data_st, const int16_t* attr, cons
             f2 = in_tab[x2];
             f3 = in_tab[x3];
             x = index - x1;
-            if (attr[1]==0)
+            if (attr[C_INTERPOLATE_ATTR]==0)
                 samp = f1;
-            else if (attr[1]==1)
+            else if (attr[C_INTERPOLATE_ATTR]==1)
                 samp = (f2-f1)*x + f1;
             else
             samp = f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
@@ -1321,9 +1332,9 @@ void crush(float* input, float* output, void* data_st, const int16_t* attr, cons
             f2 = in_tab[x2];
             f3 = in_tab[x3];
             x = index - x1;
-            if (attr[1]==0)
+            if (attr[C_INTERPOLATE_ATTR]==0)
                 samp = f1;
-            else if (attr[1]==1)
+            else if (attr[C_INTERPOLATE_ATTR]==1)
                 samp = (f2-f1)*x + f1;
             else
             samp= f1 + (((f3 - f0 - 3 * f2 + 3 * f1)* x + 3 * (f2 + f0 - 2*f1))* x - (f3 + 2*f0 - 6*f2 + 3* f1))*x/6.0;
@@ -1376,27 +1387,27 @@ void dealloc_bbd(BSOUND* bsound, void* data){
     dealloc_rngbuf(data_st->aux, bsound);
     free(data_st);
 }
-void bbd(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
+void bbd(const float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     BBD_OPS* data = (BBD_OPS*) data_st;
-    MYFLT mod_amount = (MYFLT)attr[3]/500.0;
-    data->mod_index+= attr[4]; if (data->mod_index>=data->mod_tab_length){data->mod_index -= data->mod_tab_length;}
+    MYFLT mod_amount = (MYFLT)attr[B_MODAMT_ATTR]/500.0;
+    data->mod_index+= attr[B_MODSPEED_ATTR]; if (data->mod_index>=data->mod_tab_length){data->mod_index -= data->mod_tab_length;}
     mod_amount *= data->modulator[data->mod_index];
-    data->read_factor = attr[0]/100.0 ;
+    data->read_factor = attr[B_QUALITY_ATTR]/100.0 ;
     data->read_factor += mod_amount;
     MYFLT read_factor =  1.0f / data->read_factor;
-    MYFLT volume = pow(10.0, attr[5]/20.0);
+    MYFLT volume = pow(10.0, attr[B_VOLUME_ATTR]/20.0);
     MYFLT* aux;
     int auxlength = data->aux->length;
     MYFLT* in_tab;
     int32_t x0, x1, x2, x3;
     MYFLT* samp_reduced;
     MYFLT f0, f1, f2, f3, x, index;
-    MYFLT feedback = attr[1]/100.0;
+    MYFLT feedback = attr[B_FEEDBACK_ATTR]/100.0;
     MYFLT samp, y0, damp_factor = data->damp_factor;
     int16_t num_chans = bsound->num_chans;
     int32_t i, ii, j, jj, k, tab_length = data->tab_length;
     int64_t frameCount = bsound->bufsize;
-    data->lp_freq = attr_to_freq_conv(attr[2]);
+    data->lp_freq = attr_to_freq_conv(attr[B_FILTER_ATTR]);
     if (data->lp_freq != data->prv_lp_freq){
         damp_factor = 2.0-cos(data->lp_freq*MY_2_PI/bsound->sample_rate);
         damp_factor = damp_factor-sqrt(damp_factor*damp_factor-1.0);
@@ -1626,35 +1637,35 @@ void recalculate_coefficients(RESEQ_OPS* data, const BSOUND* bsound){
         }
     }
 }
-void reseq(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
+void reseq(const float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound){
     RESEQ_OPS* data = (RESEQ_OPS*)data_st;
     ///here we would check whether something has changed and update accordingly
     int32_t i, j, k = 0;
-    if (attr[0]!=data->gain[0][0]){
+    if (attr[Q_GAIN_ATTR]!=data->gain[0][0]){
         for (i=0; i<bsound->num_chans; i++){
             for (j=0; j<data->num_bands; j++)
-            data->gain[i][j]=attr[0]*(0.1*i + 1);
+            data->gain[i][j]=attr[Q_GAIN_ATTR]*(0.1*i + 1);
         }
         recalculate_coefficients(data, bsound);
     }
-    if (attr[1]!=data->bandwidth[0][0]){
+    if (attr[Q_BANDWIDTH_ATTR]!=data->bandwidth[0][0]){
         for (i=0; i<bsound->num_chans; i++){
             for (j=0; j<data->num_bands; j++)
-            data->bandwidth[i][j]=(MYFLT)attr[1]/100.0;
+            data->bandwidth[i][j]=(MYFLT)attr[Q_BANDWIDTH_ATTR]/100.0;
         }
         recalculate_coefficients(data, bsound);
     }
-    if (attr[2]!=data->prv_tilt){
-        data->gain[0][0] = 50.0 - attr[2]*0.5;
-        data->gain[0][1] = 50.0 - attr[2]*0.5;
-        data->gain[0][2] = 50.0 - attr[2]*0.5;
-        data->gain[0][3] = 50.0 - attr[2]*0.5;
-        data->gain[0][4] = 50.0 - attr[2]*0.5;
-        data->gain[0][5] = attr[2]*0.5;
-        data->gain[0][6] = attr[2]*0.5;
-        data->gain[0][7] = attr[2]*0.5;
-        data->gain[0][8] = attr[2]*0.5;
-        data->gain[0][9] = attr[2]*0.5;
+    if (attr[Q_TILT_ATTR]!=data->prv_tilt){
+        data->gain[0][0] = 50.0 - attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][1] = 50.0 - attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][2] = 50.0 - attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][3] = 50.0 - attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][4] = 50.0 - attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][5] = attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][6] = attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][7] = attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][8] = attr[Q_TILT_ATTR]*0.5;
+        data->gain[0][9] = attr[Q_TILT_ATTR]*0.5;
         recalculate_coefficients(data, bsound);
     }
     int16_t numChans = bsound->num_chans;

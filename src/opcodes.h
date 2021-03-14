@@ -108,6 +108,7 @@ typedef struct {
     bool square;
 } MODDEMOD_OPS;
 typedef struct {
+    float* bit_reduced;
     MYFLT** samp_reduced;
     MYFLT samp_index;
     MYFLT samp_read;
@@ -164,33 +165,33 @@ typedef struct {
 } RESEQ_OPS;
 void* init_delay(BSOUND* bsound, USR_IN type);
 void dealloc_delay(BSOUND* bsound, void* data);
-void delay(float *input, float * output, void* data, const int16_t* attr, const BSOUND* bsound);
+void delay(const float *input, float * output, void* data, const int16_t* attr, const BSOUND* bsound);
 
 void* init_partikkel(BSOUND* bsound, USR_IN type);
 void dealloc_partikkel(BSOUND* bsound, void* data);
-void partikkel(float*input, float*output, void* data_st, const int16_t* attr, const BSOUND* bsound);
+void partikkel(const float*input, float*output, void* data_st, const int16_t* attr, const BSOUND* bsound);
 
 void* init_reson(BSOUND* bsound, USR_IN type);
 void dealloc_reson(BSOUND* bsound, void* data);
 void randomize_delay_line(DELAY_LINE* line, const BSOUND* bsound, RESON_OPS* data);
-void reson(float *input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
+void reson(const float *input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
 void* init_allpass(BSOUND* bsound, int32_t buf_length);
 void dealloc_allpass(BSOUND* bsound, void* data);
 void allpass(RNGBUF* buf, const MYFLT feedback, ALLPASS_OPS* data, const BSOUND* bsound);
 
 void* init_moddemod(BSOUND* bsound, USR_IN type);
 void dealloc_moddemod(BSOUND* bsound, void* data);
-void moddemod(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
+void moddemod(const float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
 
 void* init_crush(BSOUND* bsound, USR_IN type);
 void dealloc_crush(BSOUND* bsound, void* data);
-void crush(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
+void crush(const float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
 
 void* init_bbd(BSOUND* bsound, USR_IN type);
 void dealloc_bbd(BSOUND*, void* data);
-void bbd(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
+void bbd(const float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
 
 void* init_reseq(BSOUND* bsound, USR_IN type);
 void dealloc_reseq(BSOUND* bsound, void* data);
-void reseq(float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
+void reseq(const float* input, float* output, void* data_st, const int16_t* attr, const BSOUND* bsound);
 #endif /* opcodes_h */

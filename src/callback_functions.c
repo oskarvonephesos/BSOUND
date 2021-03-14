@@ -144,17 +144,20 @@ void write_input(float* input, BSOUND* bsound, RECORD_INFO* r){
     if (bsound->bypass_flag){
         if (!r->bypass_active){
             int32_t j; MYFLT incr = 0.99;
-            for (j=0; j<512; j++){
+            int32_t loopend = bsound->bufsize*bsound->num_chans > 512 ? 512: bsound->bufsize *bsound->num_chans;
+            for (j=0; j<loopend; j++){
             input[j]=input[j]*incr;//samplein[j]*(1.0/(j+1));
                 incr = incr*incr;
             }
-            for (j=512; j<2048*bsound->num_chans; j++)
+            if (loopend<bsound->bufsize*bsound->num_chans){
+            for (j=loopend; j<bsound->bufsize*bsound->num_chans; j++)
             input[j]=0.0f;
+      }
             r->bypass_active = 1;
         }
            else {
         int32_t j; //this is necessary because of in/out swapping
-        for (j=0; j<2048*bsound->num_chans; j++)
+        for (j=0; j<bsound->bufsize*bsound->num_chans; j++)
         input[j]=0.0f;
             }
     }
@@ -196,7 +199,7 @@ void write_input(float* input, BSOUND* bsound, RECORD_INFO* r){
     cross_fade_buffer(bsound, r);
     r->readhead = recordhead;
 }
-void apply_fx(float* input, float* output, BSOUND* bsound, float* temp1, float* temp2){
+void apply_fx(const float* input, float* output, BSOUND* bsound, float* temp1, float* temp2){
     int32_t i, skip_total = 0;
     float* temp;
     pthread_mutex_lock(&bsound->mymutex);

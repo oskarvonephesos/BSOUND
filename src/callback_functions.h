@@ -51,5 +51,5 @@ void cross_fade_buffer(BSOUND* bsound, RECORD_INFO* r);
 RECORD_INFO* init_recordinfo(BSOUND* bsound);
 CALLBACK_DATA* init_callbackdata(BSOUND* bsound);
 int test_callback( const void *input, void *output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData );
-void apply_fx(float* input, float* output, BSOUND* bsound, float* temp1, float* temp2);
+void apply_fx(const float* input, float* output, BSOUND* bsound, float* temp1, float* temp2);
 #endif
