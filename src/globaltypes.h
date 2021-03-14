@@ -21,6 +21,7 @@
 #define types_h
 #include <curses.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include "../portaudio/portaudio.h"
 #include <pthread.h>
 #ifndef MYFLT
