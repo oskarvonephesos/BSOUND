@@ -224,7 +224,7 @@ void apply_fx(float* input, float* output, OP_STACK* head, BSOUND* bsound, float
         current_op->func(temp1, temp2, current_op->func_st, current_op->attr , bsound);
         i++;
         if (i<bsound->num_ops){
-            attr_num = which_attr_is_skip(current_op->type);
+            attr_num = which_attr_is(SHARED_SKIP_ATTR, current_op->type, 0);
             if (current_op->attr[attr_num]){
                 int j;
                 skip_total += current_op->attr[attr_num];

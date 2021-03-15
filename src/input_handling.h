@@ -18,12 +18,23 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
     **/
 #include "globaltypes.h"
+#include "gui_utilities.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include "../portaudio/portaudio.h"
 
 #ifndef input_handling_h
 #define input_handling_h
+
+typedef enum {
+SHARED_DECAY_TIME_ATTR,
+SHARED_FILTER_ATTR,
+SHARED_DISTORT_ATTR,
+SHARED_SKIP_ATTR,
+SHARED_WET_ATTR,
+SHARED_VOLUME_ATTR,
+SHARED_NUM_ATTR
+} SHARED_ATTR_NUM;
 
 typedef enum {
 D_TIME_ATTR,
@@ -100,6 +111,8 @@ Q_NUM_ATTR
 } RESEQ_ATTR_NUM;
 
 void* input_handler(void* id );
+int16_t which_attr_is(SHARED_ATTR_NUM attr, USR_IN type, int16_t attr_num);
+//deprecated
 int16_t which_attr_is_skip(int16_t attr_num);
 void error_message(const char* message, BSOUND* bsound);
 

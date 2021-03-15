@@ -4,7 +4,7 @@ CFLAGS =-DPA_USE_COREAUDIO=1 -Wno-deprecated-declarations -DUSE_CALLBACK#-o3 -ff
 # this changes search directory #-isysroot /Library/Developer/CommandLineTools/MacOSX10.15.sdk/##-o2 is a more moderate optimization, but this doesn't seem to do very much
 SRCDIR =./src/
 PDIR =./portaudio/
-_SRC = callback_functions.o data_types.o input_handling.o log_actions.o opcodes.o \
+_SRC = callback_functions.o data_types.o gui_utilities.o input_handling.o log_actions.o opcodes.o \
 	programm_state.o util_opcodes.o main_callback.o
 _TEST_SRC = data_types.o input_handling.o log_actions.o opcodes.o \
 		programm_state.o util_opcodes.o test_sound.o
@@ -26,6 +26,7 @@ $(SRC): $(SRCDIR)globaltypes.h
 $(SRCDIR)callback_functions.o: $(SRCDIR)input_handling.o $(SRCDIR)util_opcodes.o
 $(SRCDIR)data_types.o: $(SRCDIR)data_types.c $(SRCDIR)data_types.h
 $(SRCDIR)input_handling.o: $(SRCDIR)input_handling.c $(SRCDIR)input_handling.h
+$(SRCDIR)gui_utilities.O: $(SRCDIR)input_handling.h $(SRCDIR)gui_utilities.c $(SRCDIR)gui_utilities.h
 $(SRCDIR)log_actions.o: $(SRCDIR)log_actions.c $(SRCDIR)log_actions.h
 $(SRCDIR)opcodes.o: $(SRCDIR)opcodes.c $(SRCDIR)opcodes.h
 $(SRCDIR)programm_state.o: $(SRCDIR)programm_state.c $(SRCDIR)programm_state.h

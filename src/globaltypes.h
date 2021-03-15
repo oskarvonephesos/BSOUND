@@ -47,6 +47,7 @@ typedef enum {
     MANUAL,
     CLEAR,
     PREFERENCES_MENU,
+    LOAD_ST,
     NUM_OPTIONS,
     //manipulate stack
     EMPTY = -1,

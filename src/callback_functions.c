@@ -200,7 +200,7 @@ void write_input(float* input, BSOUND* bsound, RECORD_INFO* r){
     r->readhead = recordhead;
 }
 void apply_fx(const float* input, float* output, BSOUND* bsound, float* temp1, float* temp2){
-    int32_t i, skip_total = 0;
+    int32_t i, j;
     float* temp;
     pthread_mutex_lock(&bsound->mymutex);
     OP_STACK* current_op = bsound->head;
@@ -218,21 +218,28 @@ void apply_fx(const float* input, float* output, BSOUND* bsound, float* temp1, f
         }
         current_op = bsound->head;
     for (i= 0; i<bsound->num_ops;){
+            //this used to happen all the time and caused a segmentation fault
              if (current_op->func == NULL){
                    bsound->num_ops = i;
                    bsound->errors[BERROR_FUNCST_NULL]++;
                    break;
              }
         current_op->func(temp1, temp2, current_op->func_st, current_op->attr , bsound);
+        attr_num = which_attr_is(SHARED_WET_ATTR, current_op->type, 0);
+        if (current_op->attr[attr_num]!=100){
+             float wet_amount = current_op->attr[attr_num]/100.0;
+             for (j=0; j< sampcount; j++)
+             temp2[j]= temp2[j]*wet_amount + (1.0-wet_amount)*temp1[j];
+       }
         i++;
         if (i<bsound->num_ops){
-            attr_num = which_attr_is_skip(current_op->type);
+            attr_num = which_attr_is(SHARED_SKIP_ATTR, current_op->type, 0);
             if (current_op->attr[attr_num]){
-                int32_t j;
-                skip_total += current_op->attr[attr_num];
                 MYFLT skip_amount = current_op->attr[attr_num]/100.0;
-                for (j=0; j<sampcount; j++)
+                for (j=0; j<sampcount; j++){
                 output[j]+=temp2[j]*skip_amount;
+                temp2[j]=temp2[j]*(1.0-skip_amount);
+                }
             }
 
             temp = temp1;
